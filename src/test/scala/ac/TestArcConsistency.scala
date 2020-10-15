@@ -10,4 +10,18 @@ class TestArcConsistency extends AnyFlatSpec {
     val csp = new CSP(listOfVariables, listOfDomains)
     assert(csp.isArcConsistent)
   }
+
+  it should "be also arc consistent" in {
+    val listOfDomains = Map(Variable("a") -> Domain(0 to 10 toList), Variable("b") -> Domain(5 to 15 toList))
+    val listOfVariables = List(Variable("a"), Variable("b"))
+    val csp = new CSP(listOfVariables, listOfDomains)
+    assert(csp.isArcConsistent)
+  }
+
+  it should "not be arc consistent" in {
+    val listOfDomains = Map(Variable("a") -> Domain(0 to 10 toList), Variable("b") -> Domain(10 to 20 toList))
+    val listOfVariables = List(Variable("a"), Variable("b"))
+    val csp = new CSP(listOfVariables, listOfDomains)
+    assert(!csp.isArcConsistent)
+  }
 }

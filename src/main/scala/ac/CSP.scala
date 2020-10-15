@@ -4,6 +4,7 @@ import scala.annotation.tailrec
 
 case class Domain(values: List[Int])
 case class Variable(name: String)
+case class Constraint(fun: (Int, Int) => Boolean)
 
 class CSP(val variables: List[Variable], val domainMap: Map[Variable, Domain]) {
 
@@ -92,11 +93,40 @@ class CSP(val variables: List[Variable], val domainMap: Map[Variable, Domain]) {
       case Nil => true
     }
   }
+
+  /*
+   * Reverse the representation of a graph composed by a list of edge to neighbors (connected nodes) to a
+   * node -> list of edges and neighbor node
+   * From List(edge -> (node_1, node_2), edge -> (node_2, node_3)) ===> (node_1 -> Map(edge -> node_2, ...), node_2 -> ...)
+   * @param directGraph a graph in the form of List(edge -> (node_1, node_2), edge -> (node_2, node_3))
+   * @return a graph in the form of Map(node_1 -> Map(edge -> node_2, ...), node_2 -> ...)
+   */
+  def ReverseGraph(mapOfConstraint: Map[Constraint, (Variable, Variable)]): Map[Variable, Map[Constraint, Variable]] = {
+    /* Auxiliary function
+     * Reverse the representation of a connection in a graph
+     * From edge -> (node_1, node_2) ===> node_1 -> Map(edge -> node_2, ...)
+     * @param edge the edge connecting two nodes
+     * @param node the current node that we want to convert
+     */
+    def reverseEdgeDes(edge: (Constraint, (Variable, Variable)), node: Variable): (Constraint, Variable) = {
+      if (edge._2._2 == node) (edge._1, edge._2._1) else (edge._1, edge._2._2)
+    }
+
+    def implementation(mapOfConstraint: Map[Constraint, (Variable, Variable)]): Map[Variable, Map[Constraint, Variable]] = {
+      val setOfNode = mapOfConstraint.flatMap(x => List(x._2._1, x._2._2)).toSet
+      setOfNode.map { cv =>
+        val edgeToNode = mapOfConstraint withFilter (con => Set(con._2._1, con._2._2).contains(cv) ) map (node => reverseEdgeDes(node, cv))
+        (cv -> edgeToNode)
+      }.toMap
+    }
+
+    implementation(mapOfConstraint)
+  }
 }
 
 
 object ConsistencyApp extends App {
-  var listOfDomains = Map(Variable("a") -> Domain(0 to 10 toList), Variable("b") -> Domain(0 to 10 toList), Variable("c") -> Domain(0 to 10 toList))
+  var listOfDomains = Map(Variable("a") -> Domain((0 to 10).toList), Variable("b") -> Domain((0 to 10).toList), Variable("c") -> Domain((0 to 10).toList))
   val listOfVariables = List(Variable("a"), Variable("b"), Variable("c"))
   val cons = new CSP(listOfVariables, listOfDomains)
   print(cons.isArcConsistent)
