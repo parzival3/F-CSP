@@ -16,14 +16,14 @@ class MACTest extends AnyFlatSpec {
   case class Assignment()
 
   behavior of "MAC"
-
-  it should "be able to performa a MAC" in {
-    val var1 = Variable("a")
-    val var2 = Variable("b")
-    val var3 = Variable("c")
-    val c1 = Constraint((a: Int, b: Int) => a > b)
-    val c2 = Constraint((a: Int, b: Int) => a + b == 0)
-    val ListOfUnasignedVariable = List(var2, var3)
-    val directGraph: Map[Constraint, (Variable, Variable)] = Map((c1 -> ((var1, var2))), (c2 -> ((var2, var3))))
-  }
+ // TODO: finish implementation of the test
+//  it should "be able to performa a MAC" in {
+//    val var1 = Variable("a")
+//    val var2 = Variable("b")
+//    val var3 = Variable("c")
+//    val c1 = Constraint((a: Int, b: Int) => a > b)
+//    val c2 = Constraint((a: Int, b: Int) => a + b == 0)
+//    val ListOfUnasignedVariable = List(var2, var3)
+//    val directGraph: Map[Constraint, (Variable, Variable)] = Map((c1 -> ((var1, var2))), (c2 -> ((var2, var3))))
+//  }
 }

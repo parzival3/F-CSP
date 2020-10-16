@@ -21,7 +21,7 @@ class NeighborTest extends AnyFlatSpec{
       (var3 -> Map((c2 -> var2))))
 
     val listOfDomains = Map(Variable("a") -> Domain((0 to 10).toList), Variable("b") -> Domain((10 to 20).toList))
-    val csp = new CSP(List(var1,var2, var3), listOfDomains)
+    val csp = new CSP(List(var1,var2, var3), listOfDomains, directGraph)
     assert(reversedGraph == csp.reverseConstraintGraph(directGraph))
   }
 }
