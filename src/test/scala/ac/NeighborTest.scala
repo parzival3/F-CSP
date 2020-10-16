@@ -35,14 +35,14 @@ class NeighborTest extends AnyFlatSpec{
 
 
 
-    val reversedGraph: Map[Variable, Map[Variable, Constraint]] = Map(
-      (var1 -> Map(var2 -> c1)),
-      (var2 -> Map((var1 -> c1), var3 -> c2)),
-      (var3 -> Map((var2 -> c2))))
+    val reversedGraph: Map[Variable, Map[Variable, Iterable[Constraint]]] = Map(
+      (var1 -> Map(var2 -> Set(c1))),
+      (var2 -> Map((var1 -> Set(c1)), var3 -> Set(c2))),
+      (var3 -> Map((var2 -> Set(c2)))))
 
     val listOfDomains = Map(Variable("a") -> Domain((0 to 10).toList), Variable("b") -> Domain((10 to 20).toList))
     val csp = new CSP(List(var1,var2, var3), listOfDomains, directGraph)
-    assert(reversedGraph == csp.reverseConstraintGraph2)
+    assert(reversedGraph == csp.neighbors)
   }
 
 }

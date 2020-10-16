@@ -66,30 +66,10 @@ case class Solution(csp: CSP, assignments: Assignments) extends Node {
 
   def isComplete: Boolean = assignments.isComplete(csp.variables)
 
-  /*
-   * Helper function to get all the variables in a list before the current variable.
-   * TODO: This function has to be removed when we switch to constraint as way to specify connection
-   *       between two edges
-   */
-//  private def slicing(list: List[Variable], cVar: Variable): List[Variable] = {
-//    list.slice(0, list.indexOf(cVar))
-//  }
+  private def combinator2 =  csp.neighbors.flatMap(x => x._2.keySet.zip(Set(x._1))).toList
 
-
-  /*
-   * Combinator just give us a list of all the combination between a list of variables
-   * TODO: this is just to test the ARC consistency, this has to be removed
-   */
-  private def combinator(list: List[Variable]): List[(Variable, Variable)] = {
-    for {
-      v1 <- list
-      v2 <- list
-      if v1 != v2
-    } yield (v1, v2)
-  }
-
-  def isArcConsistent: Boolean = AC_3(csp, combinator(csp.variables)).isDefined
-
+  def isArcConsistent: Boolean = AC_3(csp, combinator2).isDefined
+  def MAC(queue: List[(Variable, Variable)]): Option[CSP] = AC_3(csp, queue)
   def constraint(x: Int, y: Int): Boolean = y > x
   /*
    * function REVISE(csp,Xi, Xj) returns true iff we revise the domain of Xi
@@ -103,13 +83,13 @@ case class Solution(csp: CSP, assignments: Assignments) extends Node {
    * @return (Boolean, Domain) return a tuple containing true if there was a revision of the domain and the new domain
    * @param vars a (Variable, Variable) tuple take from the head of the queue
    * @param domList  a Map (Variable -> Domain)
-   * TODO:  currently the function take as parameters a tuple of variable and the DomainMap.
-   *        we are missing the map of neighbors or node that link a Variable Xi to another one Xj.
-   *        This can be a structure Neighbors which is a map between Variable -> (Constraint, Variable)
-   *        Or Xi -> (Cn, Xj)
    */
   def revise(csp: CSP, Xi: Variable, Xj: Variable): Option[Domain] = {
-    val newDom = Domain(csp.domainMap(Xi).values.filter(x => csp.domainMap(Xj).values.foldLeft(false)(_ || constraint(x, _))))
+    val constraints: List[Constraint] = csp.neighbors(Xi)(Xj).toList
+    def applyToAllConstraint(valuei: Int, valuej: Int): Boolean = {
+      constraints.forall(_.fun(valuei, valuej))
+    }
+    val newDom = Domain(csp.domainMap(Xi).values.filter(x => csp.domainMap(Xj).values.foldLeft(false)(_ || applyToAllConstraint(x, _))))
     Option.when(newDom != csp.domainMap(Xi))(newDom)
   }
 
@@ -144,7 +124,7 @@ case class Solution(csp: CSP, assignments: Assignments) extends Node {
         case Some(dom) => dom.values match {
           case Nil => None
           case _ =>
-            val arcsToReview = csp.reverseConstraintGraph2(Xi).keySet.-(Xj).zip(Set(Xi)).toList
+            val arcsToReview = csp.neighbors(Xi).keySet.-(Xj).zip(Set(Xi)).toList
             AC_3(csp.restrictDomain(x._1 -> dom), xs ::: arcsToReview)
         }
       }
@@ -178,9 +158,9 @@ trait Node {
       orderDomainValues(solution, unassignedVar).map { value =>
         solution.isConsistent(newAssignment = unassignedVar -> value)
         val newAssignment = solution.assignments.addValue(unassignedVar, value)
-        inference(solution.csp, unassignedVar, newAssignment) match {
+        inference(Solution(solution.csp, newAssignment), unassignedVar) match {
           case None => None
-          case Some(x) =>Some(Solution(solution.csp.restrictDomain(x), newAssignment))
+          case Some(newCSP) => Some(Solution(newCSP, newAssignment))
         }
       }
   }
@@ -224,11 +204,9 @@ trait Node {
     solution.csp.domainMap(variable).values.to(LazyList)
   }
 
-  /*
-   * TODO: complete the method
-   */
-  def inference(csp: CSP, unassignedVar: Variable, newAssignment: Assignments): Option[Map[Variable, Domain]] = {
-    require(newAssignment.notAssigned(unassignedVar))
-    Some(csp.domainMap)
+  def inference(solution: Solution, unassignedVar: Variable): Option[CSP] = {
+    require(solution.assignments.notAssigned(unassignedVar))
+    val listOfNeighborNotAssigned = (solution.csp.neighbors(unassignedVar) -- solution.assignments.mapVarValue.keys).keys.zip(Set(unassignedVar)).toList
+    solution.MAC(listOfNeighborNotAssigned)
   }
 }
