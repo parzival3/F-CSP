@@ -88,7 +88,7 @@ case class Solution(csp: CSP, assignments: Assignments) extends Node {
     } yield (v1, v2)
   }
 
-  def isArcConsistent: Boolean = AC_3(csp, combinator(csp.variables))
+  def isArcConsistent: Boolean = AC_3(csp, combinator(csp.variables)).isDefined
 
   def constraint(x: Int, y: Int): Boolean = y > x
   /*
@@ -108,9 +108,9 @@ case class Solution(csp: CSP, assignments: Assignments) extends Node {
    *        This can be a structure Neighbors which is a map between Variable -> (Constraint, Variable)
    *        Or Xi -> (Cn, Xj)
    */
-  def revise(vars: (Variable, Variable), domList: Map[Variable, Domain]): (Boolean, Domain) = {
-    val newDom = Domain(domList(vars._1).values.filter(x => domList(vars._2).values.foldLeft(false)(_ || constraint(x, _))))
-    (newDom != domList(vars._1), newDom)
+  def revise(csp: CSP, Xi: Variable, Xj: Variable): Option[Domain] = {
+    val newDom = Domain(csp.domainMap(Xi).values.filter(x => csp.domainMap(Xj).values.foldLeft(false)(_ || constraint(x, _))))
+    Option.when(newDom != csp.domainMap(Xi))(newDom)
   }
 
   /*
@@ -134,18 +134,21 @@ case class Solution(csp: CSP, assignments: Assignments) extends Node {
    */
 
   @tailrec
-  private def AC_3(csp: CSP, queue: List[(Variable, Variable)]): Boolean = {
+  private def AC_3(csp: CSP, queue: List[(Variable, Variable)]): Option[CSP] = {
     queue match {
-      case x :: xs => revise(x, csp.domainMap) match {
-        case (false, _) => AC_3(csp, xs)
-        case (true, dom) => dom.values match {
-          case Nil => false
+      case x :: xs =>
+        val Xi = x._1
+        val Xj = x._2
+        revise(csp, Xi, Xj) match {
+        case None => AC_3(csp, xs)
+        case Some(dom) => dom.values match {
+          case Nil => None
           case _ =>
-            val newGraph = csp.reverseConstraintGraph2
-            AC_3(csp.restrictDomain(x._1 -> dom), xs ::: newGraph(x._1).keySet.-(x._2).zip(Set(x._1)).toList)
+            val arcsToReview = csp.reverseConstraintGraph2(Xi).keySet.-(Xj).zip(Set(Xi)).toList
+            AC_3(csp.restrictDomain(x._1 -> dom), xs ::: arcsToReview)
         }
       }
-      case Nil => true
+      case Nil => Some(csp)
     }
   }
 }
