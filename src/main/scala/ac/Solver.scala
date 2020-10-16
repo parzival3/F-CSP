@@ -27,12 +27,18 @@ case class Assignments(mapVarValue: Map[Variable, Int] = Map[Variable, Int]()) {
     Assignments(mapVarValue + (unassignedVar -> value))
   }
 
+  def getUnassignedVariable(variables: List[Variable]): Variable = {
+    require(notComplete(variables))
+    variables.filter(notAssigned).head
+  }
+
   def assigned(variable: Variable): Boolean = {
     mapVarValue.contains(variable)
   }
   def notAssigned(variable: Variable): Boolean = !assigned(variable)
 
-  def isComplete: Boolean = true
+  def isComplete(variableList: List[Variable]): Boolean = mapVarValue.size == variableList.size
+  def notComplete(variableList: List[Variable]): Boolean = !isComplete(variableList)
 }
 
 /*
@@ -55,6 +61,8 @@ case class Solution(csp: CSP, assignments: Assignments) extends Node {
     require(assignments.notAssigned(newAssignment._1))
     assignments.mapVarValue.forall(csp.isAssignmentConsistent(newAssignment, _))
   }
+
+  def isComplete: Boolean = assignments.isComplete(csp.variables)
 }
 
 /*
@@ -78,8 +86,8 @@ trait Node {
      */
   def children(solution: Solution): LazyList[Option[Solution with Node]] = {
       // TODO: Should we try all the unassigned variables? maybe with a lazy list? and do a flatMap?
-      val unassignedVar = selectUnassignedVar(solution.csp, solution.assignments)
-      orderDomainValues(solution.csp, unassignedVar, solution.assignments).map { value =>
+      val unassignedVar = selectUnassignedVar(solution)
+      orderDomainValues(solution, unassignedVar).map { value =>
         solution.isConsistent(newAssignment = unassignedVar -> value)
         val newAssignment = solution.assignments.addValue(unassignedVar, value)
         inference(solution.csp, unassignedVar, newAssignment) match {
@@ -88,8 +96,6 @@ trait Node {
         }
       }
   }
-
-  def isComplete: Boolean = true
 
   /*
   * function BACKTRACKING-SEARCH(csp) returns a solution or failure
@@ -108,14 +114,26 @@ trait Node {
   }
 
   /*
-   *
+   * Select the next variable to try for our graph
+   * Currently it only returns the first available variable, probalby a better solution is to return a LazyList of
+   * variables
+   * @param solution the current solution in which there is a free variable
    */
-  def selectUnassignedVar(csp: CSP, assignment: Assignments): Variable = {
-    Variable("a")
+  def selectUnassignedVar(solution: Solution): Variable = {
+    solution.assignments.getUnassignedVariable(solution.csp.variables)
   }
 
-  def orderDomainValues(csp: CSP, unassignedVar: Variable, assignment: Assignments): LazyList[Int] = {
-    LazyList[Int]()
+  /*
+   * Select the order in which the values in the domain are selected
+   * For us is not very important, the problem here is that we need a Lazy List in order to use
+   * the functional DFS
+   * @param solution the current solution
+   * @param variable the current unassigned variable
+   * @return LazyList of integer values congruent with the current variable domain
+   */
+  def orderDomainValues(solution: Solution, variable: Variable): LazyList[Int] = {
+    require(solution.csp.domainMap(variable).values.nonEmpty)
+    solution.csp.domainMap(variable).values.to(LazyList)
   }
 
   def inference(csp: CSP, unassignedVar: Variable, newAssignment: Assignments): Option[Domain] = {
