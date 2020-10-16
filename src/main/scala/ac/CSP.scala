@@ -13,6 +13,8 @@ class CSP(val variables: List[Variable], val domainMap: Map[Variable, Domain]) {
     new CSP(variables, Map[Variable, Domain](Variable("a") -> newDomain))
   }
 
+  // TODO: change this and automatically generate it
+  val mapOfConstraint: Map[Constraint, (Variable, Variable)] = Map[Constraint, (Variable, Variable)]()
 
   val queue: List[(Variable, Variable)] = combinator(variables)
 
@@ -32,7 +34,7 @@ class CSP(val variables: List[Variable], val domainMap: Map[Variable, Domain]) {
    * Combinator just give us a list of all the combination between a list of variables
    * TODO: this is just to test the ARC consistency, this has to be removed
    */
-  private def combinator(list: List[Variable]): List[(Variable, Variable)]  = {
+  private def combinator(list: List[Variable]): List[(Variable, Variable)] = {
     for {
       v1 <- list
       v2 <- list
@@ -88,16 +90,36 @@ class CSP(val variables: List[Variable], val domainMap: Map[Variable, Domain]) {
   private def AC_3(queue: List[(Variable, Variable)], domList: Map[Variable, Domain]): Boolean = {
     queue match {
       case x :: xs => revise(x, domList) match {
-        case (false, _ ) => AC_3(xs, domList)
+        case (false, _) => AC_3(xs, domList)
         case (true, dom) => dom.values match {
           case Nil => false
           case _ =>
             val newDom = domList - x._1 + (x._1 -> dom)
-            AC_3(xs:::combinator(slicing(variables, x._1)), newDom)
+            AC_3(xs ::: combinator(slicing(variables, x._1)), newDom)
         }
       }
       case Nil => true
     }
+  }
+
+  /*
+   * Auxiliary method used to check if the current pair of variables and their values are consistent
+   * TODO: this method doesn't give the expected result, we need to add also the permutation (Xi, Xj) and (Xj, Xi)
+   */
+  def variablesConstraintMap(mapOfConstraint: Map[Constraint, (Variable, Variable)]): Map[(Variable, Variable), Iterable[Constraint]] = {
+    mapOfConstraint.groupBy(_._2).view.mapValues(_.keys).toMap
+  }
+
+  /*
+   * Method to check if the two variables are consistent
+   * @param Xi first variable
+   * @param Xj second variable
+   * @param valuei value of the frist variable
+   * @param valuej value of the second variable
+   * @param mapOfConstraint a map of Constraint -> Variable, Variable
+   */
+  def isAssignmentConsistent(ass1: (Variable, Int), ass2: (Variable, Int)): Boolean = {
+    reverseConstraintGraph2(mapOfConstraint)(ass1._1)(ass2._1).fun(ass1._2, ass2._2)
   }
 
   /*
@@ -109,7 +131,7 @@ class CSP(val variables: List[Variable], val domainMap: Map[Variable, Domain]) {
    * @param directGraph a graph in the form of List(edge -> (node_1, node_2), edge -> (node_2, node_3))
    * @return a graph in the form of Map(node_1 -> Map(edge -> node_2, ...), node_2 -> ...)
    */
-  def ReverseGraph(mapOfConstraint: Map[Constraint, (Variable, Variable)]): Map[Variable, Map[Constraint, Variable]] = {
+  def reverseConstraintGraph(mapOfConstraint: Map[Constraint, (Variable, Variable)]): Map[Variable, Map[Constraint, Variable]] = {
     /* Auxiliary function
      * Reverse the representation of a connection in a graph
      * From edge -> (node_1, node_2) ===> node_1 -> Map(edge -> node_2, ...)
@@ -123,7 +145,31 @@ class CSP(val variables: List[Variable], val domainMap: Map[Variable, Domain]) {
     def implementation(mapOfConstraint: Map[Constraint, (Variable, Variable)]): Map[Variable, Map[Constraint, Variable]] = {
       val setOfNode = mapOfConstraint.flatMap(x => List(x._2._1, x._2._2)).toSet
       setOfNode.map { cv =>
-        val edgeToNode = mapOfConstraint withFilter (con => Set(con._2._1, con._2._2).contains(cv) ) map (node => reverseEdgeDes(node, cv))
+        val edgeToNode = mapOfConstraint withFilter (con => Set(con._2._1, con._2._2).contains(cv)) map (node => reverseEdgeDes(node, cv))
+        (cv -> edgeToNode)
+      }.toMap
+    }
+
+    implementation(mapOfConstraint)
+  }
+
+  def reverseConstraintGraph2(mapOfConstraint: Map[Constraint, (Variable, Variable)]): Map[Variable, Map[Variable, Constraint]] = {
+
+    /* Auxiliary function
+     * Reverse the representation of a connection in a graph
+     * From edge -> (node_1, node_2) ===> node_1 -> Map(edge -> node_2, ...)
+     * @param edge the edge connecting two nodes
+     * @param node the current node that we want to convert
+     */
+    def reverseEdgeDes(edge: (Constraint, (Variable, Variable)), node: Variable): (Variable, Constraint) = {
+      if (edge._2._2 == node) (edge._2._1, edge._1) else (edge._2._2, edge._1)
+    }
+
+    def implementation(mapOfConstraint: Map[Constraint, (Variable, Variable)]): Map[Variable, Map[Variable, Constraint]] = {
+      // TODO: there must be a better way to do this
+      val setOfNode = mapOfConstraint.flatMap(x => List(x._2._1, x._2._2)).toSet
+      setOfNode.map { cv =>
+        val edgeToNode = mapOfConstraint withFilter (con => Set(con._2._1, con._2._2).contains(cv)) map (node => reverseEdgeDes(node, cv))
         (cv -> edgeToNode)
       }.toMap
     }
