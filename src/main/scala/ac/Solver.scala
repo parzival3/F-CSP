@@ -156,13 +156,17 @@ trait Node {
       // TODO: Should we try all the unassigned variables? maybe with a lazy list? and do a flatMap?
       val unassignedVar = selectUnassignedVar(solution)
       orderDomainValues(solution, unassignedVar).map { value =>
-        solution.isConsistent(newAssignment = unassignedVar -> value)
-        val newAssignment = solution.assignments.addValue(unassignedVar, value)
-        inference(Solution(solution.csp, newAssignment), unassignedVar) match {
-          case None => None
-          case Some(newCSP) => Some(Solution(newCSP, newAssignment))
+        (solution.isConsistent(newAssignment = unassignedVar -> value)) match {
+          case true => {
+            val newAssignment = solution.assignments.addValue(unassignedVar, value)
+            inference(Solution(solution.csp, newAssignment), unassignedVar) match {
+              case None => None
+              case Some(newCSP) => Some(Solution(newCSP, newAssignment))
+            }
+          }
+          case false => None
         }
-      }
+      }.to(LazyList)
   }
 
   /*
@@ -174,7 +178,7 @@ trait Node {
   * function BACKTRACK(csp, assignment) returns a solution or failure
     *  if assignment is complete then return assignment
    */
-  private def backtrack(solution: Solution): LazyList[Option[Solution with Node]] = children(solution).flatMap {
+  def backtrack(solution: Solution): LazyList[Option[Solution with Node]] = children(solution).flatMap {
     child => child match {
       case None => LazyList(None)
       case Some(x) =>  if (x.isComplete) LazyList(child) else x.backtrack(solution)
@@ -186,6 +190,7 @@ trait Node {
    * Currently it only returns the first available variable, probalby a better solution is to return a LazyList of
    * variables
    * @param solution the current solution in which there is a free variable
+   * @return Variable
    */
   def selectUnassignedVar(solution: Solution): Variable = {
     solution.assignments.getUnassignedVariable(solution.csp.variables)
@@ -199,13 +204,13 @@ trait Node {
    * @param variable the current unassigned variable
    * @return LazyList of integer values congruent with the current variable domain
    */
-  def orderDomainValues(solution: Solution, variable: Variable): LazyList[Int] = {
+  def orderDomainValues(solution: Solution, variable: Variable): List[Int] = {
     require(solution.csp.domainMap(variable).values.nonEmpty)
-    solution.csp.domainMap(variable).values.to(LazyList)
+    solution.csp.domainMap(variable).values
   }
 
   def inference(solution: Solution, unassignedVar: Variable): Option[CSP] = {
-    require(solution.assignments.notAssigned(unassignedVar))
+    // require(solution.assignments.notAssigned(unassignedVar))
     val listOfNeighborNotAssigned = (solution.csp.neighbors(unassignedVar) -- solution.assignments.mapVarValue.keys).keys.zip(Set(unassignedVar)).toList
     solution.MAC(listOfNeighborNotAssigned)
   }
