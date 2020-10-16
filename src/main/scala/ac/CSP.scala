@@ -11,11 +11,16 @@ class CSP(val variables: List[Variable], val domainMap: Map[Variable, Domain], v
     new CSP(variables, newDomain, mapOfConstraint)
   }
 
+  def restrictDomain(mapVarDomain: (Variable, Domain)): CSP = {
+    val newDomain = (domainMap - mapVarDomain._1)  + mapVarDomain
+    new CSP(variables, newDomain, mapOfConstraint)
+  }
+
   /*
    * Auxiliary method used to check if the current pair of variables and their values are consistent
    * TODO: this method doesn't give the expected result, we need to add also the permutation (Xi, Xj) and (Xj, Xi)
    */
-  def variablesConstraintMap(mapOfConstraint: Map[Constraint, (Variable, Variable)]): Map[(Variable, Variable), Iterable[Constraint]] = {
+  def variablesConstraintMap: Map[(Variable, Variable), Iterable[Constraint]] = {
     mapOfConstraint.groupBy(_._2).view.mapValues(_.keys).toMap
   }
 
@@ -28,7 +33,7 @@ class CSP(val variables: List[Variable], val domainMap: Map[Variable, Domain], v
    * @param mapOfConstraint a map of Constraint -> Variable, Variable
    */
   def isAssignmentConsistent(ass1: (Variable, Int), ass2: (Variable, Int)): Boolean = {
-    reverseConstraintGraph2(mapOfConstraint)(ass1._1)(ass2._1).fun(ass1._2, ass2._2)
+    reverseConstraintGraph2(ass1._1)(ass2._1).fun(ass1._2, ass2._2)
   }
 
   /*
@@ -40,7 +45,7 @@ class CSP(val variables: List[Variable], val domainMap: Map[Variable, Domain], v
    * @param directGraph a graph in the form of List(edge -> (node_1, node_2), edge -> (node_2, node_3))
    * @return a graph in the form of Map(node_1 -> Map(edge -> node_2, ...), node_2 -> ...)
    */
-  def reverseConstraintGraph(mapOfConstraint: Map[Constraint, (Variable, Variable)]): Map[Variable, Map[Constraint, Variable]] = {
+  def reverseConstraintGraph: Map[Variable, Map[Constraint, Variable]] = {
     /* Auxiliary function
      * Reverse the representation of a connection in a graph
      * From edge -> (node_1, node_2) ===> node_1 -> Map(edge -> node_2, ...)
@@ -51,7 +56,7 @@ class CSP(val variables: List[Variable], val domainMap: Map[Variable, Domain], v
       if (edge._2._2 == node) (edge._1, edge._2._1) else (edge._1, edge._2._2)
     }
 
-    def implementation(mapOfConstraint: Map[Constraint, (Variable, Variable)]): Map[Variable, Map[Constraint, Variable]] = {
+    def implementation: Map[Variable, Map[Constraint, Variable]] = {
       val setOfNode = mapOfConstraint.flatMap(x => List(x._2._1, x._2._2)).toSet
       setOfNode.map { cv =>
         val edgeToNode = mapOfConstraint withFilter (con => Set(con._2._1, con._2._2).contains(cv)) map (node => reverseEdgeDes(node, cv))
@@ -59,10 +64,10 @@ class CSP(val variables: List[Variable], val domainMap: Map[Variable, Domain], v
       }.toMap
     }
 
-    implementation(mapOfConstraint)
+    implementation
   }
 
-  def reverseConstraintGraph2(mapOfConstraint: Map[Constraint, (Variable, Variable)]): Map[Variable, Map[Variable, Constraint]] = {
+  def reverseConstraintGraph2: Map[Variable, Map[Variable, Constraint]] = {
 
     /* Auxiliary function
      * Reverse the representation of a connection in a graph
@@ -74,7 +79,7 @@ class CSP(val variables: List[Variable], val domainMap: Map[Variable, Domain], v
       if (edge._2._2 == node) (edge._2._1, edge._1) else (edge._2._2, edge._1)
     }
 
-    def implementation(mapOfConstraint: Map[Constraint, (Variable, Variable)]): Map[Variable, Map[Variable, Constraint]] = {
+    def implementation: Map[Variable, Map[Variable, Constraint]] = {
       // TODO: there must be a better way to do this
       val setOfNode = mapOfConstraint.flatMap(x => List(x._2._1, x._2._2)).toSet
       setOfNode.map { cv =>
@@ -83,6 +88,6 @@ class CSP(val variables: List[Variable], val domainMap: Map[Variable, Domain], v
       }.toMap
     }
 
-    implementation(mapOfConstraint)
+    implementation
   }
 }

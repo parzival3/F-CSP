@@ -71,9 +71,9 @@ case class Solution(csp: CSP, assignments: Assignments) extends Node {
    * TODO: This function has to be removed when we switch to constraint as way to specify connection
    *       between two edges
    */
-  private def slicing(list: List[Variable], cVar: Variable): List[Variable] = {
-    list.slice(0, list.indexOf(cVar))
-  }
+//  private def slicing(list: List[Variable], cVar: Variable): List[Variable] = {
+//    list.slice(0, list.indexOf(cVar))
+//  }
 
 
   /*
@@ -141,8 +141,8 @@ case class Solution(csp: CSP, assignments: Assignments) extends Node {
         case (true, dom) => dom.values match {
           case Nil => false
           case _ =>
-            val newDomain = csp.domainMap - x._1 + (x._1 -> dom)
-            AC_3(csp.restrictDomain(newDomain), xs ::: combinator(slicing(csp.variables, x._1)))
+            val newGraph = csp.reverseConstraintGraph2
+            AC_3(csp.restrictDomain(x._1 -> dom), xs ::: newGraph(x._1).keySet.-(x._2).zip(Set(x._1)).toList)
         }
       }
       case Nil => true
