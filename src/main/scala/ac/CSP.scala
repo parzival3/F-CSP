@@ -8,7 +8,13 @@ case class Constraint(fun: (Int, Int) => Boolean)
 
 class CSP(val variables: List[Variable], val domainMap: Map[Variable, Domain]) {
 
-  var queue: List[(Variable, Variable)] = combinator(variables)
+  // TODO:
+  def restrictDomain(newDomain: Domain): CSP = {
+    new CSP(variables, Map[Variable, Domain]())
+  }
+
+
+  val queue: List[(Variable, Variable)] = combinator(variables)
 
   def constraint(x: Int, y: Int): Boolean = y > x
 

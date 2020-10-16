@@ -13,6 +13,7 @@ import org.scalatest.flatspec.AnyFlatSpec
  * propagate constraints when changes are made to the domains of variables.
  */
 class MACTest extends AnyFlatSpec {
+  case class Assignment()
 
   behavior of "MAC"
 
