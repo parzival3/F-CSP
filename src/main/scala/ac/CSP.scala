@@ -10,7 +10,7 @@ class CSP(val variables: List[Variable], val domainMap: Map[Variable, Domain]) {
 
   // TODO:
   def restrictDomain(newDomain: Domain): CSP = {
-    new CSP(variables, Map[Variable, Domain]())
+    new CSP(variables, Map[Variable, Domain](Variable("a") -> newDomain))
   }
 
 
@@ -102,6 +102,8 @@ class CSP(val variables: List[Variable], val domainMap: Map[Variable, Domain]) {
 
   /*
    * Reverse the representation of a graph composed by a list of edge to neighbors (connected nodes) to a
+   * Here the graph is a constraint graph and should not be confuse with a graph of the search tree. In here
+   * the node are only represented by variables and the edges are the constraint.
    * node -> list of edges and neighbor node
    * From List(edge -> (node_1, node_2), edge -> (node_2, node_3)) ===> (node_1 -> Map(edge -> node_2, ...), node_2 -> ...)
    * @param directGraph a graph in the form of List(edge -> (node_1, node_2), edge -> (node_2, node_3))
