@@ -5,7 +5,8 @@ case class Variable(name: String)
 
 
 class CSP(val variables: List[Variable], val domainMap: Map[Variable, Domain], val mapOfConstraint: Map[FunctionConstraint2V, (Variable, Variable)]) {
-
+  // TODO: Transform the Map of constraint into a list
+  val constraints: List[FunctionConstraint2V] = mapOfConstraint.keySet.toList
   // TODO:
   def restrictDomain(newDomain: Map[Variable, Domain]): CSP = {
     new CSP(variables, newDomain, mapOfConstraint)
@@ -24,9 +25,11 @@ class CSP(val variables: List[Variable], val domainMap: Map[Variable, Domain], v
      * @return List(Constraint)
     */
   def getConstraints(variables: List[Variable]): List[Constraint] = {
-    // TODO: Transform the Map of constraint into a list
-    val constraints = mapOfConstraint.keySet.toList
     constraints.filter(c => c.relatesTo(variables))
+  }
+
+  def reviseArcs(Xi: Variable, Xj: Variable): List[(Variable, Variable)] = {
+    constraints.filter(c => c.relatesToVar(Xi) && !c.relatesToVar(Xj)).map(c => (c.getOthers(Xi).head, Xi)).distinct
   }
 
   /*

@@ -63,17 +63,24 @@ case class Solution(csp: CSP, assignments: Assignments) extends Node {
    * @return Boolean
    */
   def isConsistent(newAssignment: (Variable, Int)):Boolean = {
+    // csp.getConstraints(assignments.mapVarValue.keySet.toList ++ List(newAssignment._1)).forall(c => c.isConsistent()s)
     require(assignments.notAssigned(newAssignment._1))
-    val res = assignments.mapVarValue.forall(csp.isAssignmentConsistent(newAssignment, _))
+    val res = csp.constraints.filter(c => c.relatesToVar(newAssignment._1)).forall(c => c.isConsistent(c.neighbor, Assignments(assignments.mapVarValue ++ Map(newAssignment._1 -> newAssignment._2))))
     res
+    // val res = assignments.mapVarValue.forall(csp.isAssignmentConsistent(newAssignment, _))
+    // res
   }
 
   def isComplete: Boolean = assignments.isComplete(csp.variables)
 
   private def combinator2 =  csp.neighbors.flatMap(x => (x._2.keySet.zip(Set(x._1))).map(_.swap)).toList
+  private def combinator3: List[(Variable, Variable)] = csp.constraints.flatMap(c => List((c.neighbor.head, c.neighbor(1)), (c.neighbor(1), c.neighbor.head))).distinct
 
   def isArcConsistent: Boolean = AC_3(csp, combinator2).isDefined
-  def MAC(queue: List[(Variable, Variable)] = combinator2): Option[CSP] = AC_3(csp, queue)
+  def MAC(queue: List[(Variable, Variable)] = combinator3): Option[CSP] = {
+    val solution = AC_3(csp, queue)
+    solution
+  }
   /*
    * function REVISE(csp,Xi, Xj) returns true iff we revise the domain of Xi
    *  revised ← false
@@ -88,19 +95,29 @@ case class Solution(csp: CSP, assignments: Assignments) extends Node {
    * @param domList  a Map (Variable -> Domain)
    */
   def revise(csp: CSP, Xi: Variable, Xj: Variable): Option[Domain] = {
-
-    csp.neighbors(Xi).get(Xj) match {
-      case None => None
-      case Some(neighbor) =>  {
-        val constraints = neighbor.toList
-        def applyToAllConstraint(valuei: Int, valuej: Int): Boolean = {
-          constraints.forall(_.fun(valuei, valuej))
-        }
-        val newDom = Domain(csp.domainMap(Xi).values.filter(x => csp.domainMap(Xj).values.foldLeft(false)(_ || applyToAllConstraint(x, _))))
-        Option.when(newDom != csp.domainMap(Xi))(newDom)
-      }
+    csp.getConstraints(List(Xi, Xj)) match {
+      case List() => None
+      case constraints =>
+        val XiValues = csp.domainMap(Xi).values
+        val XjValues = csp.domainMap(Xj).values
+        val revised = Domain(XiValues.filter{ x => XjValues.foldLeft(false) { (p, n) =>
+          p || constraints.forall(c => c.isSatisfied(Map(Xi -> x, Xj -> n)))}}
+      )
+     Option.when(revised != csp.domainMap(Xi))(revised)
     }
   }
+//    csp.neighbors(Xi).get(Xj) match {
+//      case None => None
+//      case Some(neighbor) =>  {
+//        val constraints = neighbor.toList
+//        def applyToAllConstraint(valuei: Int, valuej: Int): Boolean = {
+//          constraints.forall(_.fun(valuei, valuej))
+//        }
+//        val newDom = Domain(csp.domainMap(Xi).values.filter(x => csp.domainMap(Xj).values.foldLeft(false)(_ || applyToAllConstraint(x, _))))
+//        Option.when(newDom != csp.domainMap(Xi))(newDom)
+//      }
+//    }
+//  }
 
   /*
     * function AC-3(csp) returns false if an inconsistency is found and true otherwise
@@ -133,11 +150,10 @@ case class Solution(csp: CSP, assignments: Assignments) extends Node {
         case Some(dom) => dom.values match {
           case Nil => None
           case _ =>
-            val arcsToReview = csp.neighbors(Xi).keySet.-(Xj).zip(Set(Xi)).toList
-            AC_3(csp.restrictDomain(x._1 -> dom), xs ::: arcsToReview)
+            AC_3(csp.restrictDomain(x._1 -> dom), xs ::: csp.reviseArcs(Xi, Xj))
         }
       }
-      case Nil => Some(csp)
+      case _ => Some(csp)
     }
   }
 }
@@ -171,21 +187,25 @@ trait Node {
             inference(Solution(solution.csp, newAssignment), unassignedVar) match {
               case None => None
               case Some(newCSP) => {
-                println(newCSP.domainMap)
                 Some(Solution(newCSP, newAssignment))
               }
             }
           }
           case false => None
         }
-      }.to(LazyList)
+      }
   }
 
   /*
   * function BACKTRACKING-SEARCH(csp) returns a solution or failure
     *  return BACKTRACK(csp, { })
   */
-  def backtrackingSearch(csp: CSP):LazyList[Option[Solution with Node]] = backtrack(Solution(csp, Assignments()))
+  def backtrackingSearch(csp: CSP):LazyList[Option[Solution with Node]] = {
+    Solution(csp, Assignments()).MAC() match {
+      case Some(newCSP) => backtrack(Solution((newCSP), Assignments()))
+      case None => LazyList(None)
+    }
+  }
   /*
   * function BACKTRACK(csp, assignment) returns a solution or failure
     *  if assignment is complete then return assignment
@@ -216,9 +236,9 @@ trait Node {
    * @param variable the current unassigned variable
    * @return LazyList of integer values congruent with the current variable domain
    */
-  def orderDomainValues(solution: Solution, variable: Variable): List[Int] = {
+  def orderDomainValues(solution: Solution, variable: Variable): LazyList[Int] = {
     require(solution.csp.domainMap(variable).values.nonEmpty)
-    solution.csp.domainMap(variable).values
+    solution.csp.domainMap(variable).values.to(LazyList)
   }
 
   def inference(solution: Solution, unassignedVar: Variable): Option[CSP] = {

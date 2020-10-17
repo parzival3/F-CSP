@@ -22,15 +22,26 @@ class MACTest extends AnyFlatSpec {
     val directGraph: Map[FunctionConstraint2V, (Variable, Variable)] = Map((c1 -> ((var1, var2))))
     val listOfDomains = Map(
       Variable("a") -> Domain((0 to 10).toList),
-      Variable("b") -> Domain((10 to 20).toList)
+      Variable("b") -> Domain((0 to 10).toList)
     )
     val csp = new CSP(List(var1,var2), listOfDomains, directGraph)
   }
 
   behavior of "MAC"
-  it should "be able to performa a MAC" in {
+  it should "be able to perform a MAC" in {
     import simpleProblem2V._
     val solution = Solution(csp, Assignments())
-    print(solution.MAC().get.domainMap)
+    val newDom = solution.MAC(List((var1, var2), (var2, var1))).get.domainMap
+    assert(newDom(var1).values == (1 to 10).toList)
+    assert(newDom(var2).values == (0 to 9).toList)
+  }
+
+  behavior of "MAC"
+  it should "be able to perform a MAC2" in {
+    import simpleProblem2V._
+    val solution = Solution(csp, Assignments())
+    val newDom = solution.MAC(List((var1, var2), (var2, var1))).get.domainMap
+    assert(newDom(var1).values == (1 to 10).toList)
+    assert(newDom(var2).values == (0 to 9).toList)
   }
 }

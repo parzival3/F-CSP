@@ -17,6 +17,12 @@ trait Constraint {
   def isComplete(neighbor: List[Variable], assignments: Assignments): Boolean
 
   def relatesTo(variables: List[Variable]): Boolean
+
+  def isSatisfied(mapVariableValue: Map[Variable, Int]): Boolean
+
+  def relatesToVar(variable: Variable): Boolean
+
+  def getOthers(variable: Variable): List[Variable]
 }
 
 case class FunctionConstraint2V(neighbor: List[Variable], fun: (Int, Int) => Boolean) extends Constraint {
@@ -35,5 +41,19 @@ case class FunctionConstraint2V(neighbor: List[Variable], fun: (Int, Int) => Boo
     require(variables.size == 2)
     require(neighbor.size == variables.size)
     variables.forall(neighbor.contains(_))
+  }
+
+  override def isSatisfied(mapVariableValue: Map[Variable, Int]): Boolean =  {
+    require(mapVariableValue.size == 2)
+    fun(mapVariableValue(neighbor.head), mapVariableValue(neighbor(1)))
+  }
+
+  override def relatesToVar(variable: Variable): Boolean = {
+    neighbor.contains(variable)
+  }
+
+  override def getOthers(variable: Variable): List[Variable] = {
+    // TODO: There must be another way
+    neighbor.filter(x => x != variable)
   }
 }
