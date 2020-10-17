@@ -18,7 +18,7 @@ class MACTest extends AnyFlatSpec {
   private val simpleProblem2V = new {
     val var1: Variable = Variable("a")
     val var2: Variable = Variable("b")
-    val c1: FunctionConstraint2V = FunctionConstraint2V(List(Variable("a"), Variable("b")), (a: Int, b: Int) => a > b)
+    val c1: Binary = Binary(var1, var2, (a: Int, b: Int) => a > b)
     val directGraph = List(c1)
     val listOfDomains = Map(
       Variable("a") -> Domain((0 to 10).toList),

@@ -5,6 +5,16 @@ case class Variable(name: String)
 
 
 class CSP(val variables: List[Variable], val domainMap: Map[Variable, Domain], val constraints: List[Constraint]) {
+//  def removeUnary: CSP = {
+//    val newDomainMap = domainMap.map {x =>
+//      val newDom = x._2.values.filter { value =>
+//         constraints.filter(c => c.isUnary && c.relatesToVar(x._1))
+//         .forall(cc => cc.isSatisfied(Map(x._1 -> value)))
+//      }
+//      (x._1, Domain(newDom))
+//    }
+//    new CSP(variables, newDomainMap, constraints)
+//  }
 
   def restrictDomain(mapVarDomain: (Variable, Domain)): CSP = {
     val newDomain = (domainMap - mapVarDomain._1)  + mapVarDomain
@@ -21,7 +31,8 @@ class CSP(val variables: List[Variable], val domainMap: Map[Variable, Domain], v
   }
 
   def reviseArcs(Xi: Variable, Xj: Variable): List[(Variable, Variable)] = {
-    constraints.filter(c => c.relatesToVar(Xi) && !c.relatesToVar(Xj)).map(c => (c.getOthers(Xi).head, Xi)).distinct
+    constraints.filter(c => !c.isUnary)
+    .filter(c => c.relatesToVar(Xi) && !c.relatesToVar(Xj)).map(c => (c.getOther(Xi).get, Xi)).distinct
   }
 
   def neighbors(variable: Variable): List[Variable] = {
@@ -29,5 +40,6 @@ class CSP(val variables: List[Variable], val domainMap: Map[Variable, Domain], v
   }
 
   val combinationOfNeighbors: List[(Variable, Variable)] =
-    constraints.flatMap(c => List((c.neighbor.head, c.neighbor(1)), (c.neighbor(1), c.neighbor.head))).distinct
+    constraints.filterNot(_.isUnary)
+    .flatMap(c => List((c.neighbor.head, c.neighbor(1)), (c.neighbor(1), c.neighbor.head))).distinct
 }

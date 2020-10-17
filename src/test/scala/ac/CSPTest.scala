@@ -12,11 +12,11 @@ class CSPTest extends AnyFlatSpec {
     val varD: Variable = Variable("d")
 
     // TODO: pay attention for now how to assign constraint
-    val c1: FunctionConstraint2V = FunctionConstraint2V(List(varA, varB), (a: Int, b: Int) => a + 1 <= b)
-    val c2: FunctionConstraint2V = FunctionConstraint2V(List(varA, varB), (a: Int, b: Int) => a * a == b)
-    val c3: FunctionConstraint2V = FunctionConstraint2V(List(varB, varC), (b: Int, c: Int) => b * b == 2 * c)
-    val c4: FunctionConstraint2V = FunctionConstraint2V(List(varC, varB), (b: Int, c: Int) => b * b == 2 * c)
-    val c5: FunctionConstraint2V = FunctionConstraint2V(List(varB, varD), (b: Int, c: Int) => b * b == 2 * c)
+    val c1: Binary = Binary(varA, varB, (a: Int, b: Int) => a + 1 <= b)
+    val c2: Binary = Binary(varA, varB, (a: Int, b: Int) => a * a == b)
+    val c3: Binary = Binary(varB, varC, (b: Int, c: Int) => b * b == 2 * c)
+    val c4: Binary = Binary(varC, varB, (b: Int, c: Int) => b * b == 2 * c)
+    val c5: Binary = Binary(varB, varD, (b: Int, c: Int) => b * b == 2 * c)
 
     val listOf2Domains = Map(
       varA -> Domain((0 to 4)toList),

@@ -14,12 +14,16 @@ trait Constraint {
 
   def relatesToVar(variable: Variable): Boolean
 
-  def getOthers(variable: Variable): List[Variable]
+  def getOther(variable: Variable): Option[Variable]
 
   def neighbor: List[Variable]
+
+  def isUnary: Boolean
 }
 
-case class FunctionConstraint2V(values: List[Variable], fun: (Int, Int) => Boolean) extends Constraint {
+case class Binary(var1: Variable, var2: Variable, fun: (Int, Int) => Boolean) extends Constraint {
+
+  override def isUnary = false
 
   override def isConsistent(variables: List[Variable], assignments: Assignments): Boolean = {
     require(variables.size == 2)
@@ -28,22 +32,45 @@ case class FunctionConstraint2V(values: List[Variable], fun: (Int, Int) => Boole
 
   override def relatesTo(variables: List[Variable]): Boolean = {
     require(variables.size == 2)
-    require(values.size == variables.size)
-    variables.forall(values.contains(_))
+    variables.contains(var1) || variables.contains(var2)
   }
 
   override def isSatisfied(mapVariableValue: Map[Variable, Int]): Boolean =  {
-    require(mapVariableValue.size == 2)
-    fun(mapVariableValue(values.head), mapVariableValue(values(1)))
+    fun(mapVariableValue(var1), mapVariableValue(var2))
   }
 
   override def relatesToVar(variable: Variable): Boolean = {
-    values.contains(variable)
+    variable == var1 || variable == var2
   }
 
-  override def getOthers(variable: Variable): List[Variable] = {
-    values.filterNot(_  == variable)
+  override def getOther(variable: Variable): Option[Variable] = {
+    if (variable == var1) Some(var2) else Some(var1)
   }
 
-  override def neighbor: List[Variable] = values
+  override def neighbor: List[Variable] = List(var1, var2)
+}
+
+case class Unary(var1: Variable, fun: (Int) => Boolean) extends Constraint {
+
+  override def isUnary = true
+
+  override def isConsistent(variables: List[Variable], assignments: Assignments): Boolean = {
+    !assignments.mapVarValue.contains(var1) || fun(assignments.mapVarValue(var1))
+  }
+
+  override def relatesTo(variables: List[Variable]): Boolean = {
+    false
+  }
+
+  override def isSatisfied(mapVariableValue: Map[Variable, Int]): Boolean =  {
+    fun(mapVariableValue(var1))
+  }
+
+  override def relatesToVar(variable: Variable): Boolean = {
+    variable == var1
+  }
+
+  override def getOther(variable: Variable): Option[Variable] = None
+
+  override def neighbor: List[Variable] = List()
 }

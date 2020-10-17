@@ -81,8 +81,8 @@ case class Solution(csp: CSP, assignments: Assignments) extends Node {
     }
   }
 
-  override def backtrack(solution: Solution): LazyList[Solution with Node] = children(solution).flatMap {
-    child => if (child.isComplete) LazyList(child) else child.backtrack(child)
+  override def backtrack(solution: Solution = this): LazyList[Solution with Node] = children(solution).flatMap {
+    child => if (child.isComplete) LazyList(child) else child.backtrack()
   }
 }
 

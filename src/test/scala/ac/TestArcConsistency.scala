@@ -9,8 +9,8 @@ class TestArcConsistency extends AnyFlatSpec {
     val varA: Variable = Variable("a")
     val varB: Variable = Variable("b")
     val varC: Variable = Variable("c")
-    val constraintAB: FunctionConstraint2V = FunctionConstraint2V(List(varA, varB), (a, b) => a > b)
-    val constraintCB: FunctionConstraint2V = FunctionConstraint2V(List(varC, varB), (c, b) => c > b)
+    val constraintAB: Binary = Binary(varA, varB, (a, b) => a > b)
+    val constraintCB: Binary = Binary(varC, varB, (c, b) => c > b)
     val listOfABVars =  List(varA, varB)
     val listOfABCVars = List(varA, varB, varC)
     val mapOf2Constraint = List(constraintAB, constraintCB)
@@ -52,7 +52,7 @@ class TestArcConsistency extends AnyFlatSpec {
 
   it should "not be arc consistent for mutli" in {
     import varsConstraintFixture._
-    val squareConstraint = FunctionConstraint2V(List(varA, varB), (a, b) => a * a == b)
+    val squareConstraint = Binary(varA, varB, (a, b) => a * a == b)
 
     val listOfDomains = Map(
       varA -> Domain(100 to 110 toList),
