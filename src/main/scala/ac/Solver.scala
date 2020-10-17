@@ -31,30 +31,68 @@ import scala.annotation.tailrec
  */
 case class Solution(csp: CSP, assignments: Assignments) extends Node {
   /*
-   * TODO: This doesn't really make sens but that's the best I come up with for now
-   *       definitely to refactor inside assignment for now the information is
-   *       distributed across multiple classes I should rethink on where to store all the
-   *       data, List[Variable], mapOfConstraint, Domains, Assignments etc...
-   *
    * A new solution is consistent if a new assignment is consistent.
    * @param newAssignment tuple of (Variable,Value)
    * @return Boolean
    */
   def isConsistent(newAssignment: (Variable, Int)):Boolean = {
     require(assignments.notAssigned(newAssignment._1))
-    csp.constraints.filter(c => c.relatesToVar(newAssignment._1)).forall(c => c.isConsistent(c.neighbor, Assignments(assignments.mapVarValue ++ Map(newAssignment._1 -> newAssignment._2))))
+    isComplete || csp.constraints.filter(c => c.relatesToVar(newAssignment._1)).forall{ c =>
+      c.isConsistent(c.neighbor, Assignments(assignments.mapVarValue ++ Map(newAssignment._1 -> newAssignment._2)))
+    }
   }
 
   def isComplete: Boolean = assignments.isComplete(csp.variables)
 
-  private def combinator2 =  csp.neighbors.flatMap(x => (x._2.keySet.zip(Set(x._1))).map(_.swap)).toList
-  private def combinator3: List[(Variable, Variable)] = csp.constraints.flatMap(c => List((c.neighbor.head, c.neighbor(1)), (c.neighbor(1), c.neighbor.head))).distinct
-
-  def isArcConsistent: Boolean = AC_3(csp, combinator2).isDefined
-  def MAC(queue: List[(Variable, Variable)] = combinator3): Option[CSP] = {
-    val solution = AC_3(csp, queue)
-    solution
+  override def selectUnassignedVar(solution: Solution): Variable = {
+    solution.assignments.getUnassignedVariable(solution.csp.variables)
   }
+
+  override def orderDomainValues(solution: Solution, variable: Variable): LazyList[Int] = {
+    require(solution.csp.domainMap(variable).values.nonEmpty)
+    solution.csp.domainMap(variable).values.to(LazyList)
+  }
+
+  override def inference(solution: Solution, unassignedVar: Variable): Option[CSP] = {
+    val listOfNeighborNotAssigned = (solution.csp.neighbors(unassignedVar).zip(Set(unassignedVar)))
+    solution.MAC(csp, listOfNeighborNotAssigned)
+  }
+
+  override def MAC(csp: CSP, queue: List[(Variable, Variable)] = csp.combinationOfNeighbors): Option[CSP] = AC_3(csp, queue)
+
+  override def children(solution: Solution): LazyList[Solution with Node] = {
+    val newVar = selectUnassignedVar(solution)
+    val values = orderDomainValues(solution, newVar).filter(value => solution.isConsistent(newVar -> value))
+    values.flatMap { value =>
+      val newAssignment = solution.assignments.addValue(newVar, value)
+      inference(Solution(solution.csp, newAssignment), newVar) match {
+        case None => LazyList.empty
+        case Some(newCSP) => {
+          LazyList(Solution(newCSP, newAssignment))
+        }
+      }
+    }
+  }
+
+  override def backtrackingSearch(csp: CSP):LazyList[Solution with Node] = {
+    Solution(csp, Assignments()).MAC(csp) match {
+      case Some(newCSP) => backtrack(Solution((newCSP), Assignments()))
+      case None => LazyList.empty
+    }
+  }
+
+  override def backtrack(solution: Solution): LazyList[Solution with Node] = children(solution).flatMap {
+    child => if (child.isComplete) LazyList(child) else child.backtrack(child)
+  }
+}
+
+/*
+ * Node that represent one node of the search tree in the current problem.
+ * This node is not to confuse with the "node" used to define the constraint graph in the CSP itself
+ *
+ */
+trait Node {
+
   /*
    * function REVISE(csp,Xi, Xj) returns true iff we revise the domain of Xi
    *  revised ← false
@@ -76,22 +114,10 @@ case class Solution(csp: CSP, assignments: Assignments) extends Node {
         val XjValues = csp.domainMap(Xj).values
         val revised = Domain(XiValues.filter{ x => XjValues.foldLeft(false) { (p, n) =>
           p || constraints.forall(c => c.isSatisfied(Map(Xi -> x, Xj -> n)))}}
-      )
-     Option.when(revised != csp.domainMap(Xi))(revised)
+        )
+        Option.when(revised != csp.domainMap(Xi))(revised)
     }
   }
-//    csp.neighbors(Xi).get(Xj) match {
-//      case None => None
-//      case Some(neighbor) =>  {
-//        val constraints = neighbor.toList
-//        def applyToAllConstraint(valuei: Int, valuej: Int): Boolean = {
-//          constraints.forall(_.fun(valuei, valuej))
-//        }
-//        val newDom = Domain(csp.domainMap(Xi).values.filter(x => csp.domainMap(Xj).values.foldLeft(false)(_ || applyToAllConstraint(x, _))))
-//        Option.when(newDom != csp.domainMap(Xi))(newDom)
-//      }
-//    }
-//  }
 
   /*
     * function AC-3(csp) returns false if an inconsistency is found and true otherwise
@@ -113,32 +139,25 @@ case class Solution(csp: CSP, assignments: Assignments) extends Node {
     * @param domList This is a map between a Variable and its domain
    */
 
+  def AC_3(csp: CSP, queue: List[(Variable, Variable)]): Option[CSP] = AC_3_imp(csp, queue)
+
   @tailrec
-  private def AC_3(csp: CSP, queue: List[(Variable, Variable)]): Option[CSP] = {
+  private def AC_3_imp(csp: CSP, queue: List[(Variable, Variable)]): Option[CSP] = {
     queue match {
       case x :: xs =>
         val Xi = x._1
         val Xj = x._2
         revise(csp, Xi, Xj) match {
-        case None => AC_3(csp, xs)
-        case Some(dom) => dom.values match {
-          case Nil => None
-          case _ =>
-            AC_3(csp.restrictDomain(x._1 -> dom), xs ::: csp.reviseArcs(Xi, Xj))
+          case None => AC_3_imp(csp, xs)
+          case Some(dom) => dom.values match {
+            case Nil => None
+            case _ =>
+              AC_3_imp(csp.restrictDomain(x._1 -> dom), xs ::: csp.reviseArcs(Xi, Xj))
+          }
         }
-      }
       case _ => Some(csp)
     }
   }
-}
-
-/*
- * Node that represent one node of the search tree in the current problem.
- * This node is not to confuse with the "node" used to define the constraint graph in the CSP itself
- *
- */
-trait Node {
-
   /*
      * The children of the current node are all the possible node with one less free variable
      *  var ← SELECT-UNASSIGNED-VARIABLE(csp, assignment)
@@ -151,37 +170,24 @@ trait Node {
      *      result ← BACKTRACK(csp, assignment)
      *
      */
-  def children(solution: Solution): LazyList[Solution with Node] = {
-    val newVar = selectUnassignedVar(solution)
-    val values = orderDomainValues(solution, newVar).filter(value => solution.isConsistent(newVar -> value))
-    values.flatMap { value =>
-      val newAssignment = solution.assignments.addValue(newVar, value)
-      inference(Solution(solution.csp, newAssignment), newVar) match {
-        case None => LazyList.empty
-        case Some(newCSP) => {
-          LazyList(Solution(newCSP, newAssignment))
-        }
-      }
-    }
-  }
+
+  def isArcConsistent(csp: CSP): Boolean = AC_3(csp, csp.combinationOfNeighbors).isDefined
+
+  def MAC(csp: CSP, queue: List[(Variable, Variable)]): Option[CSP] = AC_3(csp, queue)
+
+  def children(solution: Solution): LazyList[Solution with Node]
 
   /*
   * function BACKTRACKING-SEARCH(csp) returns a solution or failure
     *  return BACKTRACK(csp, { })
   */
-  def backtrackingSearch(csp: CSP):LazyList[Solution with Node] = {
-    Solution(csp, Assignments()).MAC() match {
-      case Some(newCSP) => backtrack(Solution((newCSP), Assignments()))
-      case None => LazyList.empty
-    }
-  }
+  def backtrackingSearch(csp: CSP):LazyList[Solution with Node]
+
   /*
   * function BACKTRACK(csp, assignment) returns a solution or failure
     *  if assignment is complete then return assignment
    */
-  def backtrack(solution: Solution): LazyList[Solution with Node] = children(solution).flatMap {
-    child => if (child.isComplete) LazyList(child) else child.backtrack(child)
-  }
+  def backtrack(solution: Solution): LazyList[Solution with Node]
 
   /*
    * Select the next variable to try for our graph
@@ -190,9 +196,7 @@ trait Node {
    * @param solution the current solution in which there is a free variable
    * @return Variable
    */
-  def selectUnassignedVar(solution: Solution): Variable = {
-    solution.assignments.getUnassignedVariable(solution.csp.variables)
-  }
+  def selectUnassignedVar(solution: Solution): Variable
 
   /*
    * Select the order in which the values in the domain are selected
@@ -202,13 +206,7 @@ trait Node {
    * @param variable the current unassigned variable
    * @return LazyList of integer values congruent with the current variable domain
    */
-  def orderDomainValues(solution: Solution, variable: Variable): LazyList[Int] = {
-    require(solution.csp.domainMap(variable).values.nonEmpty)
-    solution.csp.domainMap(variable).values.to(LazyList)
-  }
+  def orderDomainValues(solution: Solution, variable: Variable): LazyList[Int]
 
-  def inference(solution: Solution, unassignedVar: Variable): Option[CSP] = {
-    val listOfNeighborNotAssigned = (solution.csp.neighbors(unassignedVar) -- solution.assignments.mapVarValue.keys).keys.zip(Set(unassignedVar)).toList
-    solution.MAC(listOfNeighborNotAssigned)
-  }
+  def inference(solution: Solution, unassignedVar: Variable): Option[CSP]
 }

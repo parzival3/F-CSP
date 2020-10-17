@@ -6,15 +6,7 @@ trait Constraint {
    * congruent with the constraint
    * @param neighbor the list of variables for which this constraint is applied
    */
-  def isConsistent(neighbor: List[Variable], assignments: Assignments): Boolean
-
-
-  /*
-   * An assignment is complete only if all the neighbor have are assigned and their values are congruent with the
-   * current constraint
-   * @param neighbor list of variables that relies on this constraint
-   */
-  def isComplete(neighbor: List[Variable], assignments: Assignments): Boolean
+  def isConsistent(variables: List[Variable], assignments: Assignments): Boolean
 
   def relatesTo(variables: List[Variable]): Boolean
 
@@ -23,37 +15,35 @@ trait Constraint {
   def relatesToVar(variable: Variable): Boolean
 
   def getOthers(variable: Variable): List[Variable]
+
+  def neighbor: List[Variable]
 }
 
-case class FunctionConstraint2V(neighbor: List[Variable], fun: (Int, Int) => Boolean) extends Constraint {
+case class FunctionConstraint2V(values: List[Variable], fun: (Int, Int) => Boolean) extends Constraint {
 
-  override def isConsistent(neighbor: List[Variable], assignments: Assignments): Boolean = {
-    require(neighbor.size == 2)
-    !assignments.areAssigned(neighbor) || fun(assignments.mapVarValue(neighbor.head), assignments.mapVarValue(neighbor(1)))
-  }
-
-  override def isComplete(neighbor: List[Variable], assignments: Assignments): Boolean = {
-    require(neighbor.size == 2)
-    assignments.areAssigned(neighbor) && fun(assignments.mapVarValue(neighbor.head), assignments.mapVarValue(neighbor(1)))
+  override def isConsistent(variables: List[Variable], assignments: Assignments): Boolean = {
+    require(variables.size == 2)
+    !assignments.areAssigned(variables) || fun(assignments.mapVarValue(variables.head), assignments.mapVarValue(variables(1)))
   }
 
   override def relatesTo(variables: List[Variable]): Boolean = {
     require(variables.size == 2)
-    require(neighbor.size == variables.size)
-    variables.forall(neighbor.contains(_))
+    require(values.size == variables.size)
+    variables.forall(values.contains(_))
   }
 
   override def isSatisfied(mapVariableValue: Map[Variable, Int]): Boolean =  {
     require(mapVariableValue.size == 2)
-    fun(mapVariableValue(neighbor.head), mapVariableValue(neighbor(1)))
+    fun(mapVariableValue(values.head), mapVariableValue(values(1)))
   }
 
   override def relatesToVar(variable: Variable): Boolean = {
-    neighbor.contains(variable)
+    values.contains(variable)
   }
 
   override def getOthers(variable: Variable): List[Variable] = {
-    // TODO: There must be another way
-    neighbor.filter(x => x != variable)
+    values.filterNot(_  == variable)
   }
+
+  override def neighbor: List[Variable] = values
 }

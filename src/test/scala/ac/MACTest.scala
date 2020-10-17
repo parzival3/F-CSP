@@ -19,7 +19,7 @@ class MACTest extends AnyFlatSpec {
     val var1: Variable = Variable("a")
     val var2: Variable = Variable("b")
     val c1: FunctionConstraint2V = FunctionConstraint2V(List(Variable("a"), Variable("b")), (a: Int, b: Int) => a > b)
-    val directGraph: Map[FunctionConstraint2V, (Variable, Variable)] = Map((c1 -> ((var1, var2))))
+    val directGraph = List(c1)
     val listOfDomains = Map(
       Variable("a") -> Domain((0 to 10).toList),
       Variable("b") -> Domain((0 to 10).toList)
@@ -31,7 +31,7 @@ class MACTest extends AnyFlatSpec {
   it should "be able to perform a MAC" in {
     import simpleProblem2V._
     val solution = Solution(csp, Assignments())
-    val newDom = solution.MAC(List((var1, var2), (var2, var1))).get.domainMap
+    val newDom = solution.MAC(solution.csp, List((var1, var2), (var2, var1))).get.domainMap
     assert(newDom(var1).values == (1 to 10).toList)
     assert(newDom(var2).values == (0 to 9).toList)
   }
@@ -40,7 +40,7 @@ class MACTest extends AnyFlatSpec {
   it should "be able to perform a MAC2" in {
     import simpleProblem2V._
     val solution = Solution(csp, Assignments())
-    val newDom = solution.MAC(List((var1, var2), (var2, var1))).get.domainMap
+    val newDom = solution.MAC(solution.csp, List((var1, var2), (var2, var1))).get.domainMap
     assert(newDom(var1).values == (1 to 10).toList)
     assert(newDom(var2).values == (0 to 9).toList)
   }

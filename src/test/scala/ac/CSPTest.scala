@@ -37,35 +37,35 @@ class CSPTest extends AnyFlatSpec {
 
 
 
-  it should "detect the consistent assignments" in {
-    import generalFixture._
-
-    val directGraph: Map[FunctionConstraint2V, (Variable, Variable)] = Map((c1 -> ((varA, varB))))
-    val csp = new CSP(List(varA,varB), listOf2Domains, directGraph)
-    assert(csp.isAssignmentConsistent(varA -> 0, varB -> 1))
-    assert(!csp.isAssignmentConsistent(varA -> 2, varB -> 1))
-    assert(!csp.isAssignmentConsistent(varA -> 0, varB -> 0))
-  }
-
-  it should "detect the consistent assignments for multiple constraints" in {
-    import generalFixture._
-    val directGraph: Map[FunctionConstraint2V, (Variable, Variable)] = Map((c1 -> ((varA, varB))), (c2 -> ((varA, varB))))
-    val csp = new CSP(List(varA,varB), listOf2Domains, directGraph)
-    assert(csp.isAssignmentConsistent(varA -> 2, varB -> 4))
-    assert(!csp.isAssignmentConsistent(varA -> 2, varB -> 1))
-    assert(!csp.isAssignmentConsistent(varA -> 0, varB -> 0))
-  }
+//  it should "detect the consistent assignments" in {
+//    import generalFixture._
+//
+//    val directGraph: Map[FunctionConstraint2V, (Variable, Variable)] = Map((c1 -> ((varA, varB))))
+//    val csp = new CSP(List(varA,varB), listOf2Domains, directGraph)
+//    assert(csp.isAssignmentConsistent(varA -> 0, varB -> 1))
+//    assert(!csp.isAssignmentConsistent(varA -> 2, varB -> 1))
+//    assert(!csp.isAssignmentConsistent(varA -> 0, varB -> 0))
+//  }
+//
+//  it should "detect the consistent assignments for multiple constraints" in {
+//    import generalFixture._
+//    val directGraph: Map[FunctionConstraint2V, (Variable, Variable)] = Map((c1 -> ((varA, varB))), (c2 -> ((varA, varB))))
+//    val csp = new CSP(List(varA,varB), listOf2Domains, directGraph)
+//    assert(csp.isAssignmentConsistent(varA -> 2, varB -> 4))
+//    assert(!csp.isAssignmentConsistent(varA -> 2, varB -> 1))
+//    assert(!csp.isAssignmentConsistent(varA -> 0, varB -> 0))
+//  }
 
   it should "getConstraint should return List(c1)" in {
     import generalFixture._
-    val directGraph: Map[FunctionConstraint2V, (Variable, Variable)] = Map((c1 -> ((varA, varB))))
+    val directGraph =  List(c1)
     val csp = new CSP(List(varA,varB), listOf2Domains, directGraph)
     assert(List(c1) == csp.getConstraints(List(varA, varB)))
   }
 
   it should "getConstraint should return the correct list for constraints" in {
     import generalFixture._
-    val directGraph: Map[FunctionConstraint2V, (Variable, Variable)] = Map((c1 -> ((varA, varB))), (c3 -> ((varC, varB))))
+    val directGraph = List(c1, c3)
     val csp = new CSP(List(varA,varB, varC), listOf3Domains, directGraph)
     println(csp.getConstraints(List(varA, varB)))
     assert(List(c1) == csp.getConstraints(List(varA, varB)))
@@ -76,13 +76,7 @@ class CSPTest extends AnyFlatSpec {
 
   it should "able to revise the arcs between its variables" in {
     import generalFixture._
-    val directGraph: Map[FunctionConstraint2V, (Variable, Variable)] = Map(
-      (c1 -> ((varA, varB))),
-      (c2 -> ((varA, varB))),
-      (c3 -> ((varB, varC))),
-      (c4 -> ((varC, varB))),
-      (c5 -> ((varB, varD))),
-    )
+    val directGraph = List(c1, c2, c3, c4, c5)
     val csp = new CSP(List(varA,varB, varC, varD), listOf3Domains, directGraph)
     assert(List() == csp.reviseArcs(varA, varB))
     assert(List((varC, varB), (varD, varB)) == csp.reviseArcs(varB, varA))

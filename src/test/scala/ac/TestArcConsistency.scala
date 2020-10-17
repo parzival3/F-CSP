@@ -13,8 +13,8 @@ class TestArcConsistency extends AnyFlatSpec {
     val constraintCB: FunctionConstraint2V = FunctionConstraint2V(List(varC, varB), (c, b) => c > b)
     val listOfABVars =  List(varA, varB)
     val listOfABCVars = List(varA, varB, varC)
-    val mapOf2Constraint = Map((constraintAB -> ((varA, varB))), (constraintCB -> ((varC, varB))))
-    val mapOf1Constraint = Map((constraintAB -> ((varA, varB))))
+    val mapOf2Constraint = List(constraintAB, constraintCB)
+    val mapOf1Constraint = List(constraintAB)
   }
 
   it should "be arc consistent" in {
@@ -22,7 +22,7 @@ class TestArcConsistency extends AnyFlatSpec {
     val listOfDomains = Map(Variable("a") -> Domain(0 to 10 toList), Variable("b") -> Domain(0 to 10 toList))
     val csp = new CSP(listOfABVars, listOfDomains, mapOf1Constraint)
     val solution = Solution(csp, Assignments())
-    assert(solution.isArcConsistent)
+    assert(solution.isArcConsistent(solution.csp))
   }
 
   it should "be also arc consistent" in {
@@ -34,7 +34,7 @@ class TestArcConsistency extends AnyFlatSpec {
     )
     val csp = new CSP(listOfABCVars, listOfDomains, mapOf2Constraint)
     val solution = Solution(csp, Assignments())
-    assert(solution.isArcConsistent)
+    assert(solution.isArcConsistent(solution.csp))
   }
 
   it should "not be arc consistent" in {
@@ -47,7 +47,7 @@ class TestArcConsistency extends AnyFlatSpec {
     )
     val csp = new CSP(listOfABCVars, listOfDomains, mapOf2Constraint)
     val solution = Solution(csp, Assignments())
-    assert(!solution.isArcConsistent)
+    assert(!solution.isArcConsistent(solution.csp))
   }
 
   it should "not be arc consistent for mutli" in {
@@ -59,8 +59,8 @@ class TestArcConsistency extends AnyFlatSpec {
       varB -> Domain(100 to 110 toList)
     )
 
-    val csp = new CSP(listOfABVars, listOfDomains, Map(squareConstraint -> ((varA, varB))))
+    val csp = new CSP(listOfABVars, listOfDomains, List(squareConstraint))
     val solution = Solution(csp, Assignments())
-    assert(!solution.isArcConsistent)
+    assert(!solution.isArcConsistent(solution.csp))
   }
 }
