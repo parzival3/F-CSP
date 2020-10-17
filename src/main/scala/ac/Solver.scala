@@ -37,6 +37,9 @@ case class Assignments(mapVarValue: Map[Variable, Int] = Map[Variable, Int]()) {
   def assigned(variable: Variable): Boolean = {
     mapVarValue.contains(variable)
   }
+  def areAssigned(variables: List[Variable]): Boolean = {
+    variables.forall(mapVarValue.contains)
+  }
   def notAssigned(variable: Variable): Boolean = !assigned(variable)
 
   def isComplete(variableList: List[Variable]): Boolean = mapVarValue.size == variableList.size
@@ -61,16 +64,16 @@ case class Solution(csp: CSP, assignments: Assignments) extends Node {
    */
   def isConsistent(newAssignment: (Variable, Int)):Boolean = {
     require(assignments.notAssigned(newAssignment._1))
-    assignments.mapVarValue.forall(csp.isAssignmentConsistent(newAssignment, _))
+    val res = assignments.mapVarValue.forall(csp.isAssignmentConsistent(newAssignment, _))
+    res
   }
 
   def isComplete: Boolean = assignments.isComplete(csp.variables)
 
-  private def combinator2 =  csp.neighbors.flatMap(x => x._2.keySet.zip(Set(x._1))).toList
+  private def combinator2 =  csp.neighbors.flatMap(x => (x._2.keySet.zip(Set(x._1))).map(_.swap)).toList
 
   def isArcConsistent: Boolean = AC_3(csp, combinator2).isDefined
-  def MAC(queue: List[(Variable, Variable)]): Option[CSP] = AC_3(csp, queue)
-  def constraint(x: Int, y: Int): Boolean = y > x
+  def MAC(queue: List[(Variable, Variable)] = combinator2): Option[CSP] = AC_3(csp, queue)
   /*
    * function REVISE(csp,Xi, Xj) returns true iff we revise the domain of Xi
    *  revised ← false
@@ -85,12 +88,18 @@ case class Solution(csp: CSP, assignments: Assignments) extends Node {
    * @param domList  a Map (Variable -> Domain)
    */
   def revise(csp: CSP, Xi: Variable, Xj: Variable): Option[Domain] = {
-    val constraints: List[Constraint] = csp.neighbors(Xi)(Xj).toList
-    def applyToAllConstraint(valuei: Int, valuej: Int): Boolean = {
-      constraints.forall(_.fun(valuei, valuej))
+
+    csp.neighbors(Xi).get(Xj) match {
+      case None => None
+      case Some(neighbor) =>  {
+        val constraints = neighbor.toList
+        def applyToAllConstraint(valuei: Int, valuej: Int): Boolean = {
+          constraints.forall(_.fun(valuei, valuej))
+        }
+        val newDom = Domain(csp.domainMap(Xi).values.filter(x => csp.domainMap(Xj).values.foldLeft(false)(_ || applyToAllConstraint(x, _))))
+        Option.when(newDom != csp.domainMap(Xi))(newDom)
+      }
     }
-    val newDom = Domain(csp.domainMap(Xi).values.filter(x => csp.domainMap(Xj).values.foldLeft(false)(_ || applyToAllConstraint(x, _))))
-    Option.when(newDom != csp.domainMap(Xi))(newDom)
   }
 
   /*
@@ -161,7 +170,10 @@ trait Node {
             val newAssignment = solution.assignments.addValue(unassignedVar, value)
             inference(Solution(solution.csp, newAssignment), unassignedVar) match {
               case None => None
-              case Some(newCSP) => Some(Solution(newCSP, newAssignment))
+              case Some(newCSP) => {
+                println(newCSP.domainMap)
+                Some(Solution(newCSP, newAssignment))
+              }
             }
           }
           case false => None
@@ -181,7 +193,7 @@ trait Node {
   def backtrack(solution: Solution): LazyList[Option[Solution with Node]] = children(solution).flatMap {
     child => child match {
       case None => LazyList(None)
-      case Some(x) =>  if (x.isComplete) LazyList(child) else x.backtrack(solution)
+      case Some(x) =>  if (x.isComplete) LazyList(child) else x.backtrack(x)
     }
   }
 

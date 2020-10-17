@@ -2,9 +2,9 @@ package ac
 
 case class Domain(values: List[Int])
 case class Variable(name: String)
-case class Constraint(fun: (Int, Int) => Boolean)
 
-class CSP(val variables: List[Variable], val domainMap: Map[Variable, Domain], val mapOfConstraint: Map[Constraint, (Variable, Variable)]) {
+
+class CSP(val variables: List[Variable], val domainMap: Map[Variable, Domain], val mapOfConstraint: Map[FunctionConstraint2V, (Variable, Variable)]) {
 
   // TODO:
   def restrictDomain(newDomain: Map[Variable, Domain]): CSP = {
@@ -16,11 +16,24 @@ class CSP(val variables: List[Variable], val domainMap: Map[Variable, Domain], v
     new CSP(variables, newDomain, mapOfConstraint)
   }
 
+
+
+  /*
+     * Get all the constraint between two variables
+     * @param variables List[Variable]
+     * @return List(Constraint)
+    */
+  def getConstraints(variables: List[Variable]): List[Constraint] = {
+    // TODO: Transform the Map of constraint into a list
+    val constraints = mapOfConstraint.keySet.toList
+    constraints.filter(c => c.relatesTo(variables))
+  }
+
   /*
    * Auxiliary method used to check if the current pair of variables and their values are consistent
    * TODO: this method doesn't give the expected result, we need to add also the permutation (Xi, Xj) and (Xj, Xi)
    */
-  def variablesConstraintMap: Map[(Variable, Variable), Iterable[Constraint]] = {
+  def variablesConstraintMap: Map[(Variable, Variable), Iterable[FunctionConstraint2V]] = {
     mapOfConstraint.groupBy(_._2).view.mapValues(_.keys).toMap
   }
 
@@ -33,7 +46,10 @@ class CSP(val variables: List[Variable], val domainMap: Map[Variable, Domain], v
    * @param mapOfConstraint a map of Constraint -> Variable, Variable
    */
   def isAssignmentConsistent(ass1: (Variable, Int), ass2: (Variable, Int)): Boolean = {
-    neighbors(ass1._1)(ass2._1).forall(_.fun(ass1._2, ass2._2))
+    neighbors(ass1._1).get(ass2._1) match {
+      case Some(x) => x.forall(_.fun(ass1._2, ass2._2))
+      case None => true
+    }
   }
 
   /*
@@ -45,18 +61,18 @@ class CSP(val variables: List[Variable], val domainMap: Map[Variable, Domain], v
    * @param directGraph a graph in the form of List(edge -> (node_1, node_2), edge -> (node_2, node_3))
    * @return a graph in the form of Map(node_1 -> Map(edge -> node_2, ...), node_2 -> ...)
    */
-  def reverseConstraintGraph: Map[Variable, Map[Constraint, Variable]] = {
+  def reverseConstraintGraph: Map[Variable, Map[FunctionConstraint2V, Variable]] = {
     /* Auxiliary function
      * Reverse the representation of a connection in a graph
      * From edge -> (node_1, node_2) ===> node_1 -> Map(edge -> node_2, ...)
      * @param edge the edge connecting two nodes
      * @param node the current node that we want to convert
      */
-    def reverseEdgeDes(edge: (Constraint, (Variable, Variable)), node: Variable): (Constraint, Variable) = {
+    def reverseEdgeDes(edge: (FunctionConstraint2V, (Variable, Variable)), node: Variable): (FunctionConstraint2V, Variable) = {
       if (edge._2._2 == node) (edge._1, edge._2._1) else (edge._1, edge._2._2)
     }
 
-    def implementation: Map[Variable, Map[Constraint, Variable]] = {
+    def implementation: Map[Variable, Map[FunctionConstraint2V, Variable]] = {
       variables.map { cv =>
         val edgeToNode = mapOfConstraint withFilter (con => Set(con._2._1, con._2._2).contains(cv)) map (node => reverseEdgeDes(node, cv))
         (cv -> edgeToNode)
@@ -66,7 +82,7 @@ class CSP(val variables: List[Variable], val domainMap: Map[Variable, Domain], v
     implementation
   }
 
-  def neighbors: Map[Variable, Map[Variable, Iterable[Constraint]]] = {
+  def neighbors: Map[Variable, Map[Variable, Iterable[FunctionConstraint2V]]] = {
     // ATTENTION: This implies that the constraint are unique in the initial graph map
     reverseConstraintGraph.map(x => x._1 -> x._2.groupBy(_._2).view.mapValues(_.keys).toMap)
   }

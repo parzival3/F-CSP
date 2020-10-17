@@ -4,44 +4,62 @@ import org.scalatest.flatspec.AnyFlatSpec
 
 class TestArcConsistency extends AnyFlatSpec {
   behavior of "Solution"
+
+  private val varsConstraintFixture = new {
+    val varA: Variable = Variable("a")
+    val varB: Variable = Variable("b")
+    val varC: Variable = Variable("c")
+    val constraintAB: FunctionConstraint2V = FunctionConstraint2V(List(varA, varB), (a, b) => a > b)
+    val constraintCB: FunctionConstraint2V = FunctionConstraint2V(List(varC, varB), (c, b) => c > b)
+    val listOfABVars =  List(varA, varB)
+    val listOfABCVars = List(varA, varB, varC)
+    val mapOf2Constraint = Map((constraintAB -> ((varA, varB))), (constraintCB -> ((varC, varB))))
+    val mapOf1Constraint = Map((constraintAB -> ((varA, varB))))
+  }
+
   it should "be arc consistent" in {
+    import varsConstraintFixture._
     val listOfDomains = Map(Variable("a") -> Domain(0 to 10 toList), Variable("b") -> Domain(0 to 10 toList))
-    val listOfVariables = List(Variable("a"), Variable("b"))
-    val constraintAB = Constraint((a, b) => a > b)
-    val mapOfConstraint = Map((constraintAB -> ((Variable("a"), Variable("b")))))
-    val csp = new CSP(listOfVariables, listOfDomains, mapOfConstraint)
+    val csp = new CSP(listOfABVars, listOfDomains, mapOf1Constraint)
     val solution = Solution(csp, Assignments())
     assert(solution.isArcConsistent)
   }
 
   it should "be also arc consistent" in {
-    val listOfDomains = Map(Variable("a") -> Domain(0 to 10 toList), Variable("b") -> Domain(5 to 15 toList), Variable("c") -> Domain(5 to 15 toList))
-    val listOfVariables = List(Variable("a"), Variable("b"), Variable("c"))
-    val constraintAB = Constraint((a, b) => a > b)
-    val constraintCB = Constraint((a, b) => a > b)
-    val mapOfConstraint = Map((constraintAB -> ((Variable("a"), Variable("b")))), (constraintCB -> ((Variable("b"), Variable("c")))))
-    val csp = new CSP(listOfVariables, listOfDomains, mapOfConstraint)
+    import varsConstraintFixture._
+    val listOfDomains = Map(
+      varA -> Domain(0 to 10 toList),
+      varB -> Domain(5 to 15 toList),
+      varC -> Domain(5 to 15 toList)
+    )
+    val csp = new CSP(listOfABCVars, listOfDomains, mapOf2Constraint)
     val solution = Solution(csp, Assignments())
     assert(solution.isArcConsistent)
   }
 
   it should "not be arc consistent" in {
-    val listOfDomains = Map(Variable("a") -> Domain(0 to 10 toList), Variable("b") -> Domain(10 to 20 toList), Variable("c") -> Domain(10 to 20 toList))
-    val listOfVariables = List(Variable("a"), Variable("b"))
-    val constraintAB = Constraint((a, b) => a > b)
-    val constraintBC = Constraint((a, b) => a > b)
-    val mapOfConstraint = Map((constraintAB -> ((Variable("a"), Variable("b")))), (constraintBC -> ((Variable("b"), Variable("c")))))
-    val csp = new CSP(listOfVariables, listOfDomains, mapOfConstraint)
+    import varsConstraintFixture._
+
+    val listOfDomains = Map(
+      varA -> Domain(0 to 10 toList),
+      varB -> Domain(10 to 20 toList),
+      varC -> Domain(10 to 20 toList)
+    )
+    val csp = new CSP(listOfABCVars, listOfDomains, mapOf2Constraint)
     val solution = Solution(csp, Assignments())
     assert(!solution.isArcConsistent)
   }
 
   it should "not be arc consistent for mutli" in {
-    val listOfDomains = Map(Variable("a") -> Domain(100 to 110 toList), Variable("b") -> Domain(100 to 110 toList))
-    val listOfVariables = List(Variable("a"), Variable("b"))
-    val constraintAB = Constraint((a, b) => a * a ==  b)
-    val mapOfConstraint = Map((constraintAB -> ((Variable("a"), Variable("b")))))
-    val csp = new CSP(listOfVariables, listOfDomains, mapOfConstraint)
+    import varsConstraintFixture._
+    val squareConstraint = FunctionConstraint2V(List(varA, varB), (a, b) => a * a == b)
+
+    val listOfDomains = Map(
+      varA -> Domain(100 to 110 toList),
+      varB -> Domain(100 to 110 toList)
+    )
+
+    val csp = new CSP(listOfABVars, listOfDomains, Map(squareConstraint -> ((varA, varB))))
     val solution = Solution(csp, Assignments())
     assert(!solution.isArcConsistent)
   }

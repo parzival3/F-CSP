@@ -15,15 +15,22 @@ import org.scalatest.flatspec.AnyFlatSpec
 class MACTest extends AnyFlatSpec {
   case class Assignment()
 
+  private val simpleProblem2V = new {
+    val var1: Variable = Variable("a")
+    val var2: Variable = Variable("b")
+    val c1: FunctionConstraint2V = FunctionConstraint2V(List(Variable("a"), Variable("b")), (a: Int, b: Int) => a > b)
+    val directGraph: Map[FunctionConstraint2V, (Variable, Variable)] = Map((c1 -> ((var1, var2))))
+    val listOfDomains = Map(
+      Variable("a") -> Domain((0 to 10).toList),
+      Variable("b") -> Domain((10 to 20).toList)
+    )
+    val csp = new CSP(List(var1,var2), listOfDomains, directGraph)
+  }
+
   behavior of "MAC"
- // TODO: finish implementation of the test
-//  it should "be able to performa a MAC" in {
-//    val var1 = Variable("a")
-//    val var2 = Variable("b")
-//    val var3 = Variable("c")
-//    val c1 = Constraint((a: Int, b: Int) => a > b)
-//    val c2 = Constraint((a: Int, b: Int) => a + b == 0)
-//    val ListOfUnasignedVariable = List(var2, var3)
-//    val directGraph: Map[Constraint, (Variable, Variable)] = Map((c1 -> ((var1, var2))), (c2 -> ((var2, var3))))
-//  }
+  it should "be able to performa a MAC" in {
+    import simpleProblem2V._
+    val solution = Solution(csp, Assignments())
+    print(solution.MAC().get.domainMap)
+  }
 }
