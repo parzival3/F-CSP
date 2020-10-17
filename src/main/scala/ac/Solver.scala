@@ -23,28 +23,6 @@ import scala.annotation.tailrec
  */
 
 
-case class Assignments(mapVarValue: Map[Variable, Int] = Map[Variable, Int]()) {
-
-  def addValue(unassignedVar: Variable, value: Int): Assignments = {
-    Assignments(mapVarValue + (unassignedVar -> value))
-  }
-
-  def getUnassignedVariable(variables: List[Variable]): Variable = {
-    require(notComplete(variables))
-    variables.filter(notAssigned).head
-  }
-
-  def assigned(variable: Variable): Boolean = {
-    mapVarValue.contains(variable)
-  }
-  def areAssigned(variables: List[Variable]): Boolean = {
-    variables.forall(mapVarValue.contains)
-  }
-  def notAssigned(variable: Variable): Boolean = !assigned(variable)
-
-  def isComplete(variableList: List[Variable]): Boolean = mapVarValue.size == variableList.size
-  def notComplete(variableList: List[Variable]): Boolean = !isComplete(variableList)
-}
 
 /*
  * Case class that represent a "State" of the Problem.
@@ -63,12 +41,8 @@ case class Solution(csp: CSP, assignments: Assignments) extends Node {
    * @return Boolean
    */
   def isConsistent(newAssignment: (Variable, Int)):Boolean = {
-    // csp.getConstraints(assignments.mapVarValue.keySet.toList ++ List(newAssignment._1)).forall(c => c.isConsistent()s)
     require(assignments.notAssigned(newAssignment._1))
-    val res = csp.constraints.filter(c => c.relatesToVar(newAssignment._1)).forall(c => c.isConsistent(c.neighbor, Assignments(assignments.mapVarValue ++ Map(newAssignment._1 -> newAssignment._2))))
-    res
-    // val res = assignments.mapVarValue.forall(csp.isAssignmentConsistent(newAssignment, _))
-    // res
+    csp.constraints.filter(c => c.relatesToVar(newAssignment._1)).forall(c => c.isConsistent(c.neighbor, Assignments(assignments.mapVarValue ++ Map(newAssignment._1 -> newAssignment._2))))
   }
 
   def isComplete: Boolean = assignments.isComplete(csp.variables)
@@ -177,44 +151,36 @@ trait Node {
      *      result ← BACKTRACK(csp, assignment)
      *
      */
-  def children(solution: Solution): LazyList[Option[Solution with Node]] = {
-      // TODO: Should we try all the unassigned variables? maybe with a lazy list? and do a flatMap?
-      val unassignedVar = selectUnassignedVar(solution)
-      orderDomainValues(solution, unassignedVar).map { value =>
-        (solution.isConsistent(newAssignment = unassignedVar -> value)) match {
-          case true => {
-            val newAssignment = solution.assignments.addValue(unassignedVar, value)
-            inference(Solution(solution.csp, newAssignment), unassignedVar) match {
-              case None => None
-              case Some(newCSP) => {
-                Some(Solution(newCSP, newAssignment))
-              }
-            }
-          }
-          case false => None
+  def children(solution: Solution): LazyList[Solution with Node] = {
+    val newVar = selectUnassignedVar(solution)
+    val values = orderDomainValues(solution, newVar).filter(value => solution.isConsistent(newVar -> value))
+    values.flatMap { value =>
+      val newAssignment = solution.assignments.addValue(newVar, value)
+      inference(Solution(solution.csp, newAssignment), newVar) match {
+        case None => LazyList.empty
+        case Some(newCSP) => {
+          LazyList(Solution(newCSP, newAssignment))
         }
       }
+    }
   }
 
   /*
   * function BACKTRACKING-SEARCH(csp) returns a solution or failure
     *  return BACKTRACK(csp, { })
   */
-  def backtrackingSearch(csp: CSP):LazyList[Option[Solution with Node]] = {
+  def backtrackingSearch(csp: CSP):LazyList[Solution with Node] = {
     Solution(csp, Assignments()).MAC() match {
       case Some(newCSP) => backtrack(Solution((newCSP), Assignments()))
-      case None => LazyList(None)
+      case None => LazyList.empty
     }
   }
   /*
   * function BACKTRACK(csp, assignment) returns a solution or failure
     *  if assignment is complete then return assignment
    */
-  def backtrack(solution: Solution): LazyList[Option[Solution with Node]] = children(solution).flatMap {
-    child => child match {
-      case None => LazyList(None)
-      case Some(x) =>  if (x.isComplete) LazyList(child) else x.backtrack(x)
-    }
+  def backtrack(solution: Solution): LazyList[Solution with Node] = children(solution).flatMap {
+    child => if (child.isComplete) LazyList(child) else child.backtrack(child)
   }
 
   /*
@@ -242,7 +208,6 @@ trait Node {
   }
 
   def inference(solution: Solution, unassignedVar: Variable): Option[CSP] = {
-    // require(solution.assignments.notAssigned(unassignedVar))
     val listOfNeighborNotAssigned = (solution.csp.neighbors(unassignedVar) -- solution.assignments.mapVarValue.keys).keys.zip(Set(unassignedVar)).toList
     solution.MAC(listOfNeighborNotAssigned)
   }
