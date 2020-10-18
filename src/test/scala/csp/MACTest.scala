@@ -1,4 +1,4 @@
-package ac
+package csp
 
 import org.scalatest.flatspec.AnyFlatSpec
 /*
@@ -18,29 +18,29 @@ class MACTest extends AnyFlatSpec {
   private val simpleProblem2V = new {
     val var1: Variable = Variable("a")
     val var2: Variable = Variable("b")
-    val c1: Binary = Binary(var1, var2, (a: Int, b: Int) => a > b)
+    val c1:   Binary = Binary(var1, var2, (a: Int, b: Int) => a > b)
     val directGraph = List(c1)
     val listOfDomains = Map(
       Variable("a") -> Domain((0 to 10).toList),
       Variable("b") -> Domain((0 to 10).toList)
     )
-    val csp = new CSP(List(var1,var2), listOfDomains, directGraph)
+    val csp = new CSP(List(var1, var2), listOfDomains, directGraph)
   }
 
-  behavior of "MAC"
+  behavior.of("MAC")
   it should "be able to perform a MAC" in {
     import simpleProblem2V._
     val solution = Solution(csp, Assignments())
-    val newDom = solution.MAC(solution.csp, List((var1, var2), (var2, var1))).get.domainMap
+    val newDom = solution.MAC(solution.csp, List((var1, var2), (var2, var1))).get.varDomMap
     assert(newDom(var1).values == (1 to 10).toList)
     assert(newDom(var2).values == (0 to 9).toList)
   }
 
-  behavior of "MAC"
+  behavior.of("MAC")
   it should "be able to perform a MAC2" in {
     import simpleProblem2V._
     val solution = Solution(csp, Assignments())
-    val newDom = solution.MAC(solution.csp, List((var1, var2), (var2, var1))).get.domainMap
+    val newDom = solution.MAC(solution.csp, List((var1, var2), (var2, var1))).get.varDomMap
     assert(newDom(var1).values == (1 to 10).toList)
     assert(newDom(var2).values == (0 to 9).toList)
   }

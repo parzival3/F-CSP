@@ -1,17 +1,17 @@
-package ac
+package csp
 
 import org.scalatest.flatspec.AnyFlatSpec
 
 class TestArcConsistency extends AnyFlatSpec {
-  behavior of "Solution"
+  behavior.of("Solution")
 
   private val varsConstraintFixture = new {
-    val varA: Variable = Variable("a")
-    val varB: Variable = Variable("b")
-    val varC: Variable = Variable("c")
+    val varA:         Variable = Variable("a")
+    val varB:         Variable = Variable("b")
+    val varC:         Variable = Variable("c")
     val constraintAB: Binary = Binary(varA, varB, (a, b) => a > b)
     val constraintCB: Binary = Binary(varC, varB, (c, b) => c > b)
-    val listOfABVars =  List(varA, varB)
+    val listOfABVars = List(varA, varB)
     val listOfABCVars = List(varA, varB, varC)
     val mapOf2Constraint = List(constraintAB, constraintCB)
     val mapOf1Constraint = List(constraintAB)

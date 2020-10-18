@@ -1,11 +1,12 @@
-package ac
+package csp
 
 trait Constraint {
-  /*
-   * A constraint is consistent if there is at least a neighbor that is not assigned or if all its variable are
-   * congruent with the constraint
-   * @param neighbor the list of variables for which this constraint is applied
-   */
+
+  /**
+    * A constraint is consistent if there is at least a neighbor that is not assigned or if all its variable are
+    * congruent with the constraint
+    * @param neighbor the list of variables for which this constraint is applied
+    */
   def isConsistent(variables: List[Variable], assignments: Assignments): Boolean
 
   def relatesTo(variables: List[Variable]): Boolean
@@ -27,7 +28,10 @@ case class Binary(var1: Variable, var2: Variable, fun: (Int, Int) => Boolean) ex
 
   override def isConsistent(variables: List[Variable], assignments: Assignments): Boolean = {
     require(variables.size == 2)
-    !assignments.areAssigned(variables) || fun(assignments.mapVarValue(variables.head), assignments.mapVarValue(variables(1)))
+    !assignments.areAssigned(variables) || fun(
+      assignments.mapVarValue(variables.head),
+      assignments.mapVarValue(variables(1))
+    )
   }
 
   override def relatesTo(variables: List[Variable]): Boolean = {
@@ -35,7 +39,7 @@ case class Binary(var1: Variable, var2: Variable, fun: (Int, Int) => Boolean) ex
     variables.contains(var1) || variables.contains(var2)
   }
 
-  override def isSatisfied(mapVariableValue: Map[Variable, Int]): Boolean =  {
+  override def isSatisfied(mapVariableValue: Map[Variable, Int]): Boolean = {
     fun(mapVariableValue(var1), mapVariableValue(var2))
   }
 
@@ -62,7 +66,7 @@ case class Unary(var1: Variable, fun: (Int) => Boolean) extends Constraint {
     false
   }
 
-  override def isSatisfied(mapVariableValue: Map[Variable, Int]): Boolean =  {
+  override def isSatisfied(mapVariableValue: Map[Variable, Int]): Boolean = {
     fun(mapVariableValue(var1))
   }
 

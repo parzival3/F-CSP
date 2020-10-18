@@ -1,4 +1,4 @@
-package ac
+package csp
 
 case class Assignments(mapVarValue: Map[Variable, Int] = Map[Variable, Int]()) {
 
@@ -19,6 +19,6 @@ case class Assignments(mapVarValue: Map[Variable, Int] = Map[Variable, Int]()) {
   }
   def notAssigned(variable: Variable): Boolean = !assigned(variable)
 
-  def isComplete(variableList: List[Variable]): Boolean = mapVarValue.size == variableList.size
+  def isComplete(variableList:  List[Variable]): Boolean = mapVarValue.size == variableList.size
   def notComplete(variableList: List[Variable]): Boolean = !isComplete(variableList)
 }
