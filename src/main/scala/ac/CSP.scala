@@ -48,15 +48,28 @@ class CSP(val variables: List[Variable], val domainMap: Map[Variable, Domain], v
    * @return List(Variable, Variable)
    */
   def reviseArcs(Xi: Variable, Xj: Variable): List[(Variable, Variable)] = {
-    constraints.filter(c => !c.isUnary)
-    .filter(c => c.relatesToVar(Xi) && !c.relatesToVar(Xj)).map(c => (c.getOther(Xi).get, Xi)).distinct
+    neighbors(Xi).filterNot(_ == Xj).map(variable => (variable, Xi))
   }
 
+  /**
+   * Get all the neighbor of the current variable by looking at its constraints
+   * @param variable current variable
+   * @return List[Variables] containing all the neighbors
+   */
   def neighbors(variable: Variable): List[Variable] = {
     constraints.filter(c => c.relatesToVar(variable)).flatMap(c => c.neighbor.filterNot(_ == variable)).distinct
   }
 
-  val combinationOfNeighbors: List[(Variable, Variable)] =
-    constraints.filterNot(_.isUnary)
-    .flatMap(c => List((c.neighbor.head, c.neighbor(1)), (c.neighbor(1), c.neighbor.head))).distinct
+  /**
+   * Helper method to retrieve all the possible neighbors for all the variables in the problem
+   * The name combination of arcs instead of combination of edges is to underline that this function is only used
+   * int the AC_3 and MAC method as described in the book
+   * @return List[(Variable, Variable)] a list of all the possible neighbors for each values.
+   */
+  val combinationOfArcs: List[(Variable, Variable)] = {
+    val direct: List[(Variable, Variable)] = constraints.filterNot(_.isUnary).
+      flatMap(c => List((c.neighbor.head, c.neighbor(1))))
+    val inverse: List[(Variable, Variable)] = direct.map(_.swap)
+    (direct ::: inverse).distinct
+  }
 }

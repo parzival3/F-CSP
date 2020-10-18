@@ -58,7 +58,7 @@ case class Solution(csp: CSP, assignments: Assignments) extends Node {
     solution.MAC(csp, listOfNeighborNotAssigned)
   }
 
-  override def MAC(csp: CSP, queue: List[(Variable, Variable)] = csp.combinationOfNeighbors): Option[CSP] = AC_3(csp, queue)
+  override def MAC(csp: CSP, queue: List[(Variable, Variable)] = csp.combinationOfArcs): Option[CSP] = AC_3(csp, queue)
 
   override def children(solution: Solution): LazyList[Solution with Node] = {
     val newVar = selectUnassignedVar(solution)
@@ -172,7 +172,7 @@ trait Node {
      *
      */
 
-  def isArcConsistent(csp: CSP): Boolean = AC_3(csp, csp.combinationOfNeighbors).isDefined
+  def isArcConsistent(csp: CSP): Boolean = AC_3(csp, csp.combinationOfArcs).isDefined
 
   def MAC(csp: CSP, queue: List[(Variable, Variable)]): Option[CSP] = AC_3(csp, queue)
 
