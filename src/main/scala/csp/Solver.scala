@@ -35,7 +35,7 @@ case class Solution(csp: CSP, assignments: Assignments) extends Node {
     * @return Boolean
     */
   def isConsistent(newAssignment: (Variable, Int)): Boolean = {
-    require(assignments.notAssigned(newAssignment._1))
+    require(!assignments.assigned(newAssignment._1))
     isComplete || csp.constraints.filter(c => c.relatesToVar(newAssignment._1)).forall { c =>
       c.isConsistent(c.neighbor, Assignments(assignments.mapVarValue ++ Map(newAssignment._1 -> newAssignment._2)))
     }
