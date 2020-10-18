@@ -19,42 +19,21 @@ class CSPTest extends AnyFlatSpec {
     val c5: Binary = Binary(varB, varD, (b: Int, c: Int) => b * b == 2 * c)
 
     val listOf2Domains = Map(
-      varA -> Domain((0 to 4)toList),
+      varA -> Domain((0 to 4).toList),
       varB -> Domain((0 to 4).toList),
     )
     val listOf3Domains = Map(
-      varA -> Domain((0 to 4)toList),
+      varA -> Domain((0 to 4).toList),
       varB -> Domain((0 to 4).toList),
       varC -> Domain((0 to 4).toList),
     )
     val listOf4Domains = Map(
-      varA -> Domain((0 to 4)toList),
+      varA -> Domain((0 to 4).toList),
       varB -> Domain((0 to 4).toList),
       varC -> Domain((0 to 4).toList),
       varD -> Domain((0 to 4).toList),
     )
   }
-
-
-
-//  it should "detect the consistent assignments" in {
-//    import generalFixture._
-//
-//    val directGraph: Map[FunctionConstraint2V, (Variable, Variable)] = Map((c1 -> ((varA, varB))))
-//    val csp = new CSP(List(varA,varB), listOf2Domains, directGraph)
-//    assert(csp.isAssignmentConsistent(varA -> 0, varB -> 1))
-//    assert(!csp.isAssignmentConsistent(varA -> 2, varB -> 1))
-//    assert(!csp.isAssignmentConsistent(varA -> 0, varB -> 0))
-//  }
-//
-//  it should "detect the consistent assignments for multiple constraints" in {
-//    import generalFixture._
-//    val directGraph: Map[FunctionConstraint2V, (Variable, Variable)] = Map((c1 -> ((varA, varB))), (c2 -> ((varA, varB))))
-//    val csp = new CSP(List(varA,varB), listOf2Domains, directGraph)
-//    assert(csp.isAssignmentConsistent(varA -> 2, varB -> 4))
-//    assert(!csp.isAssignmentConsistent(varA -> 2, varB -> 1))
-//    assert(!csp.isAssignmentConsistent(varA -> 0, varB -> 0))
-//  }
 
   it should "getConstraint should return List(c1)" in {
     import generalFixture._

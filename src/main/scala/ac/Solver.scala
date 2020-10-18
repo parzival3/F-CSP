@@ -75,7 +75,8 @@ case class Solution(csp: CSP, assignments: Assignments) extends Node {
   }
 
   override def backtrackingSearch(csp: CSP):LazyList[Solution with Node] = {
-    Solution(csp, Assignments()).MAC(csp) match {
+    val noUnaryCSP = csp.removeUnary()
+    Solution(csp, Assignments()).MAC(noUnaryCSP) match {
       case Some(newCSP) => backtrack(Solution((newCSP), Assignments()))
       case None => LazyList.empty
     }

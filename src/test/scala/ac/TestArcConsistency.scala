@@ -19,7 +19,7 @@ class TestArcConsistency extends AnyFlatSpec {
 
   it should "be arc consistent" in {
     import varsConstraintFixture._
-    val listOfDomains = Map(Variable("a") -> Domain(0 to 10 toList), Variable("b") -> Domain(0 to 10 toList))
+    val listOfDomains = Map(Variable("a") -> Domain((0 to 10).toList), Variable("b") -> Domain((0 to 10).toList))
     val csp = new CSP(listOfABVars, listOfDomains, mapOf1Constraint)
     val solution = Solution(csp, Assignments())
     assert(solution.isArcConsistent(solution.csp))
@@ -28,9 +28,9 @@ class TestArcConsistency extends AnyFlatSpec {
   it should "be also arc consistent" in {
     import varsConstraintFixture._
     val listOfDomains = Map(
-      varA -> Domain(0 to 10 toList),
-      varB -> Domain(5 to 15 toList),
-      varC -> Domain(5 to 15 toList)
+      varA -> Domain((0 to 10).toList),
+      varB -> Domain((5 to 15).toList),
+      varC -> Domain((5 to 15).toList)
     )
     val csp = new CSP(listOfABCVars, listOfDomains, mapOf2Constraint)
     val solution = Solution(csp, Assignments())
@@ -41,9 +41,9 @@ class TestArcConsistency extends AnyFlatSpec {
     import varsConstraintFixture._
 
     val listOfDomains = Map(
-      varA -> Domain(0 to 10 toList),
-      varB -> Domain(10 to 20 toList),
-      varC -> Domain(10 to 20 toList)
+      varA -> Domain((0 to 10).toList),
+      varB -> Domain((10 to 20).toList),
+      varC -> Domain((10 to 20).toList)
     )
     val csp = new CSP(listOfABCVars, listOfDomains, mapOf2Constraint)
     val solution = Solution(csp, Assignments())
@@ -55,8 +55,8 @@ class TestArcConsistency extends AnyFlatSpec {
     val squareConstraint = Binary(varA, varB, (a, b) => a * a == b)
 
     val listOfDomains = Map(
-      varA -> Domain(100 to 110 toList),
-      varB -> Domain(100 to 110 toList)
+      varA -> Domain((100 to 110).toList),
+      varB -> Domain((100 to 110).toList)
     )
 
     val csp = new CSP(listOfABVars, listOfDomains, List(squareConstraint))
