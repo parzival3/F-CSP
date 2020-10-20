@@ -7,6 +7,10 @@ package csp
   */
 case class Assignments(mapVarValue: Map[Variable, Int] = Map[Variable, Int]()) {
 
+  def apply(variable: Variable): Int = {
+    mapVarValue(variable)
+  }
+
   /**
     * Add a value to the current assignments
     * @param unassignedVar

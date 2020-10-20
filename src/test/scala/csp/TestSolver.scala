@@ -8,6 +8,8 @@ class TestSolver extends AnyFlatSpec {
   private def simpleProblem2V = new {
     val var1: Variable = Variable("a")
     val var2: Variable = Variable("b")
+    val var3: Variable = Variable("c")
+    val var4: Variable = Variable("d")
     val c1:   Binary = Binary(var1, var2, (a: Int, b: Int) => a > b)
     val c2:   Unary = Unary(var1, (a) => a > 3)
     val directGraph = List(c1, c2)
@@ -22,7 +24,7 @@ class TestSolver extends AnyFlatSpec {
     val fixture = simpleProblem2V
     import fixture._
     val solution = Solution(csp, Assignments())
-    val mySols = solution.backtrackingSearch(csp).iterator
+    val mySols: Iterator[Solution with Node] = solution.backtrackingSearch(csp).iterator
     val firstSolution = mySols.next()
     println(firstSolution)
     assert(c1.fun(firstSolution.assignments.mapVarValue(var1), firstSolution.assignments.mapVarValue(var2)))

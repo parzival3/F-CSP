@@ -1,7 +1,11 @@
 package csp
 
 case class Domain(values: List[Int])
-case class Variable(name: String)
+case class Variable(name: String) {
+  def inside(range: Range*): Unary = {
+    Unary(this, (a) =>  range.flatMap(_.toList).contains(a))
+  }
+}
 
 /**
   * Class representing the current Constraint Satisfaction Problem
@@ -18,9 +22,9 @@ class CSP(val variables: List[Variable], val varDomMap: Map[Variable, Domain], v
   def removeUnary(): CSP = {
     val newDomainMap = varDomMap.map { x =>
       val newDom = x._2.values.filter { value =>
-        constraints
-          .filter(c => c.isUnary && c.relatesToVar(x._1))
-          .forall(cc => cc.isSatisfied(Map(x._1 -> value)))
+      constraints
+        .filter(c => c.isUnary && c.relatesToVar(x._1))
+        .forall(cc => cc.isSatisfied(Map(x._1 -> value)))
       }
       (x._1, Domain(newDom))
     }
