@@ -27,9 +27,13 @@ case class Assignments(mapVarValue: Map[Variable, Int] = Map[Variable, Int]()) {
     * @param variables list of variables for the current CSP
     * @return a Variable currently not assigned
     */
-  def getUnassignedVariable(variables: List[Variable]): Variable = {
+  def getUnassignedVariable(variables: List[Variable], seed: Int = 42): Variable = {
     require(isPartial(variables))
-    variables.filterNot(assigned).head
+    val rand = new scala.util.Random(seed)
+    val plist = variables.filterNot(assigned)
+    val slist = rand.shuffle(plist)
+    slist.head
+    // rand.shuffle(plist).head
   }
 
   /**

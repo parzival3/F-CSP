@@ -27,7 +27,7 @@ import scala.annotation.tailrec
  * In our case a "State" of the problem is a node on the searching graph containing the current CSP to solve and
  * the list of already assigned variables
  */
-case class Solution(csp: CSP, assignments: Assignments) extends Node {
+case class Solution(csp: CSP, assignments: Assignments, seed: Int = 42) extends Node {
 
   /**
     * A new solution is consistent if a new assignment is consistent.
@@ -49,7 +49,10 @@ case class Solution(csp: CSP, assignments: Assignments) extends Node {
 
   override def orderDomainValues(solution: Solution, variable: Variable): LazyList[Int] = {
     require(solution.csp.varDomMap(variable).values.nonEmpty)
-    solution.csp.varDomMap(variable).values.to(LazyList)
+    val ran = new scala.util.Random(seed)
+    val vlist = solution.csp.varDomMap(variable).values
+    val zlist = ran.shuffle(vlist)
+    zlist.to(LazyList)
   }
 
   override def inference(solution: Solution, unassignedVar: Variable): Option[CSP] = {
