@@ -1,6 +1,6 @@
 package sv
 
-import csp.{Assignments, CSP, Constraint, Domain, Node, Solution, Unary, Variable}
+import csp.{Assignments, CSP, Constraint, Domain, Node, Solution, Variable}
 import scala.collection.mutable.ListBuffer
 
 class Random(val seed: Int = 42) {
@@ -20,18 +20,19 @@ class Random(val seed: Int = 42) {
   type rar = Int
   var csp: Option[CSP] = None
   var randVars: List[(Variable, Domain)] = List[(Variable, Domain)]()
-  var mapOfConstraint: ListBuffer[Constraint] = ListBuffer[Constraint]()
+  val mapOfConstraint: ListBuffer[Constraint] = ListBuffer[Constraint]()
   var randCVars: List[(Variable, Iterator[Int])] = List[(Variable, Iterator[Int])]()
   var iterator: Option[Iterator[Solution with Node]] = None
 
 
-  def rand(myMap: (String, Range)): Variable = {
-    val addVar = Variable(myMap._1) -> Domain(myMap._2.toList)
+  def rand(myMap: (String, List[Int])): Variable = {
+    val addVar = Variable(myMap._1) -> Domain(myMap._2)
     randVars = randVars ::: List(addVar)
     Variable(myMap._1)
   }
 
-  def randc(myMap: (String, Range)): Variable = {
+
+  def randc(myMap: (String, List[Int])): Variable = {
     val iter = LazyList.continually(myMap._2).flatten.iterator
     val addVar = Variable(myMap._1) -> iter
     randCVars = randCVars ::: List(addVar)
@@ -47,7 +48,7 @@ class Random(val seed: Int = 42) {
     val cspAss = iterator match {
       case None => {
         restartIterator()
-        if (iterator.isEmpty) None else Some(iterator.get.next().assignments)
+        if (iterator.isDefined) None else Some(iterator.get.next().assignments)
       }
       case Some(x) =>  if (x.isEmpty) None else Some(x.next().assignments)
     }
@@ -64,10 +65,10 @@ class Random(val seed: Int = 42) {
   }
 
   def removeConstraints(constraints: List[Constraint]): Unit = {
-    mapOfConstraint = mapOfConstraint --= constraints
+    mapOfConstraint --= constraints
   }
 
   def addConstraints(constraints: List[Constraint]): Unit = {
-    mapOfConstraint = mapOfConstraint ++= constraints
+    mapOfConstraint ++= constraints
   }
 }

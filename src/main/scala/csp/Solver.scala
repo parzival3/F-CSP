@@ -49,10 +49,8 @@ case class Solution(csp: CSP, assignments: Assignments, seed: Int = 42) extends 
 
   override def orderDomainValues(solution: Solution, variable: Variable): LazyList[Int] = {
     require(solution.csp.varDomMap(variable).values.nonEmpty)
-    val ran = new scala.util.Random(seed)
-    val vlist = solution.csp.varDomMap(variable).values
-    val zlist = ran.shuffle(vlist)
-    zlist.to(LazyList)
+    val randg = new scala.util.Random(seed)
+    randg.shuffle(solution.csp.varDomMap(variable).values).to(LazyList)
   }
 
   override def inference(solution: Solution, unassignedVar: Variable): Option[CSP] = {

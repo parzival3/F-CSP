@@ -22,6 +22,7 @@ case class Assignments(mapVarValue: Map[Variable, Int] = Map[Variable, Int]()) {
   }
 
   /**
+   * TODO: Return a list of unassigned variables and do not create a random number generator here
     * Return the first unassigned variable in the current Assignments.
     * This is just an helper method, it should be changed to a random selection or completely removed.
     * @param variables list of variables for the current CSP
@@ -29,11 +30,8 @@ case class Assignments(mapVarValue: Map[Variable, Int] = Map[Variable, Int]()) {
     */
   def getUnassignedVariable(variables: List[Variable], seed: Int = 42): Variable = {
     require(isPartial(variables))
-    val rand = new scala.util.Random(seed)
-    val plist = variables.filterNot(assigned)
-    val slist = rand.shuffle(plist)
-    slist.head
-    // rand.shuffle(plist).head
+    val randg = new scala.util.Random(seed)
+    randg.shuffle(variables.filterNot(assigned)).head
   }
 
   /**
