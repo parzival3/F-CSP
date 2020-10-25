@@ -1,0 +1,5 @@
+[warn] insecure HTTP request is deprecated 'http://repo.artima.com/releases'; switch to HTTPS or opt-in as ("Artima Maven Repository" at "http://repo.artima.com/releases").withAllowInsecureProtocol(true)
+[warn] insecure HTTP request is deprecated 'http://repo.artima.com/releases'; switch to HTTPS or opt-in as ("Artima Maven Repository" at "http://repo.artima.com/releases").withAllowInsecureProtocol(true)
+[debug] "not up to date. inChanged = true, force = false
+[debug] Updating ProjectRef(uri("file:/home/enrico/Git/csp/"), "svCspTests")...
+[debug] Done updating ProjectRef(uri("file:/home/enrico/Git/csp/"), "svCspTests")
