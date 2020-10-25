@@ -13,4 +13,4 @@ lazy val svmacros: Project = (project in file("svmacros")).settings(
 
 lazy val root = (project in file(".")).settings(
   libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.0" % "test",
-).dependsOn(svmacros).aggregate(svmacros)
+).aggregate(svmacros).dependsOn(svmacros)
