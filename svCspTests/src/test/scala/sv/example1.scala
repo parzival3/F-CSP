@@ -10,7 +10,7 @@ object pktType extends SVEnumeration {
 }
 
 class Frame extends Random {
-  var pkType: Variable = randc_impl("pkType" -> pktType.domainValues())
+  var pkType: Variable = rand_impl("pkType" -> pktType.domainValues())
   var len: Variable = rand_impl("len"-> (0 to 10).toList)
   var noRepeat: Variable = randc_impl("noRepeat"-> (0 to 1).toList)
   var payload: Variable = rand_impl("payload" -> (0 to 7).toList)

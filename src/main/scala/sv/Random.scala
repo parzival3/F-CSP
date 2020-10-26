@@ -14,11 +14,12 @@ object Random {
 class Random(val seed: Int = 42) {
 
 
-  var csp: Option[CSP] = None
+  var cspO: Option[CSP] = None
   var randVars: List[(Variable, Domain)] = List[(Variable, Domain)]()
   var randVarsM: mutable.HashMap[Variable, Domain] = mutable.HashMap[Variable, Domain]()
   val mapOfConstraint: ListBuffer[Constraint] = ListBuffer[Constraint]()
   var randCVars: List[(Variable, Iterator[Int])] = List[(Variable, Iterator[Int])]()
+  var randCVarsM: mutable.HashMap[Variable, Iterator[Int]] = mutable.HashMap[Variable, Iterator[Int]]()
   var iterator: Option[Iterator[Solution with Node]] = None
 
   /**
@@ -45,17 +46,20 @@ class Random(val seed: Int = 42) {
     Variable(myMap._1)
   }
 
-  def addRandVar(myMap: (String, List[Int])): Variable = {
-    val addVar = Variable(myMap._1) -> Domain(myMap._2)
-    randVarsM += (Variable(myMap._1) -> Domain(myMap._2))
-    randVars = randVars ::: List(addVar)
-    Variable(myMap._1)
+  def addRandVar(myMap: (String, List[Int])): Unit = {
+    randVarsM = randVarsM += (Variable(myMap._1) -> Domain(myMap._2))
+  }
+
+  def addRandCVar(myMap: (String, List[Int])): Unit = {
+    val iter = LazyList.continually(myMap._2).flatten.iterator
+    randCVarsM = randCVarsM += Variable(myMap._1) -> iter
   }
 
   def rand(param: Array[Int]): Array[Int] = macro sv.RandomMacros.randArray
-  def rand(param: Int): Int = macro sv.RandomMacros.randInt
-  def randd(param: Int, dom: Range): Int = macro sv.RandomMacros.randDec
+  def rand(param: Int, dom: Range): Int = macro sv.RandomMacros.randVarDec
   def svrandc(param: Any): Variable = macro sv.RandomMacros.svrandcImpl
+  def consMacro(param: (Int) => Boolean): ConstraintBlock = macro sv.RandomMacros.addConstraintBlock
+  def un(param: (Int) => Boolean): Constraint = macro sv.RandomMacros.createUnary
   def randomMacro[T]: Unit = macro sv.RandomMacros.svrandomMacroImpl[T]
 
   def randc_impl(myMap: (String, List[Int])): Variable = {
@@ -66,8 +70,8 @@ class Random(val seed: Int = 42) {
   }
 
   def restartIterator(): Unit = {
-    csp = Some(new CSP(randVars.toMap.keySet.toList, randVars.toMap, mapOfConstraint.toList))
-    iterator = Some(Solution(csp.get, Assignments(), seed).backtrackingSearch(csp.get).iterator)
+    cspO = Some(new CSP(randVars.toMap.keySet.toList, randVars.toMap, mapOfConstraint.toList))
+    iterator = Some(Solution(cspO.get, Assignments(), seed).backtrackingSearch(cspO.get).iterator)
   }
 
   def randomize(): Option[Assignments] = {
@@ -118,19 +122,29 @@ object RandomMacros {
         $self.rand_impl(($newName, $dom))
      """
   }
-
-  def randInt(c: Context)(param: c.Expr[sv.Random.RandInt]): c.Tree = {
+  def addConstraintBlock(c: Context)(param: c.Expr[Int => Boolean]): c.Tree = {
     import c.universe._
-    val typeString = param.actualType.toString
-    val paramRep = show(param.tree)
-    val newName = paramRep.substring(paramRep.lastIndexOf(".") + 1)
-    // TODO: How can we check for a specific type?
-    typeString match {
-      case "sv.Random.RandInt" => q"10"
-      case _ => q"""
-              throw new Exception($newName + " is not declared as RandInt")
-              """
-    }
+    val Function(args, _) = param.tree
+    println(args)
+    val ValDef(_, name, _, _) = args(0)
+    val self = c.prefix
+    val func = reify{param.splice}
+    q"""
+       $self.constraintBlock {
+        _root_.csp.Unary(_root_.csp.Variable($name.toString), $func)
+      }"""
+  }
+
+  def createUnary(c: Context)(param: c.Expr[Int => Boolean]): c.Tree = {
+    import c.universe._
+    val Function(args, _) = param.tree
+    println(args)
+    val ValDef(_, name, _, _) = args(0)
+    val varName = name.toString
+    val func = reify{param.splice}
+    q"""
+        _root_.csp.Unary(_root_.csp.Variable($varName), $func)
+    """
   }
 
   def randArray(c: Context)(param: c.Expr[sv.Random.RandArray]): c.Tree = {
@@ -147,20 +161,28 @@ object RandomMacros {
     }
   }
 
-  def randDec(c: Context)(param: c.Expr[sv.Random.RandInt], dom: c.Tree): c.Tree = {
+  /**
+    * Random Variable Declaration, this functions declares a random variable by setting its value to 0 and
+    * adds it to the randVarM variables database.
+    * @param c
+    * @param param
+    * @param dom
+    * @return
+    */
+  def randVarDec(c: Context)(param: c.Expr[sv.Random.RandInt], dom: c.Tree): c.Tree = {
     import c.universe._
     // TODO: using Tree is not very safe
+    val self = c.prefix
     val typeString = param.actualType.toString
     val paramRep = show(param.tree)
     val newName = paramRep.substring(paramRep.lastIndexOf(".") + 1)
-    // val splice = dom.splice
     // TODO: How can we check for a specific type?
     typeString match {
       case "sv.Random.RandInt" =>
         q"""
-          println($dom.toList)
-          50
-         """
+          $self.addRandVar(($newName, $dom.toList))
+          0
+        """
       case _ => q"""
               throw new Exception($newName + " is not declared as RandInt")
               """
@@ -196,4 +218,6 @@ object RandomMacros {
       ..$operations
      """
   }
+
+
 }

@@ -1,2 +1,0 @@
-[warn] insecure HTTP request is deprecated 'http://repo.artima.com/releases'; switch to HTTPS or opt-in as ("Artima Maven Repository" at "http://repo.artima.com/releases").withAllowInsecureProtocol(true)
-[warn] insecure HTTP request is deprecated 'http://repo.artima.com/releases'; switch to HTTPS or opt-in as ("Artima Maven Repository" at "http://repo.artima.com/releases").withAllowInsecureProtocol(true)
