@@ -21,7 +21,8 @@ class Random(val seed: Int = 42) {
   var randCVars: List[(Variable, Iterator[Int])] = List[(Variable, Iterator[Int])]()
   var randCVarsM: mutable.HashMap[Variable, Iterator[Int]] = mutable.HashMap[Variable, Iterator[Int]]()
   var iterator: Option[Iterator[Solution with Node]] = None
-
+  var cAssignments: Option[Assignments] = Some(Assignments())
+  var flag = false
   /**
    * Constraint block class. This class encapsulate a list of constraints.
    * @param constraints
@@ -70,7 +71,7 @@ class Random(val seed: Int = 42) {
   }
 
   def restartIterator(): Unit = {
-    cspO = Some(new CSP(randVars.toMap.keys.toList, randVars.toMap, mapOfConstraint.toList))
+    cspO = Some(new CSP(randVarsM.keys.toList, randVarsM.toMap, mapOfConstraint.toList))
     iterator = Some(Solution(cspO.get, Assignments(), seed).backtrackingSearch(cspO.get).iterator)
   }
 
@@ -78,15 +79,17 @@ class Random(val seed: Int = 42) {
     val cspAss = iterator match {
       case None => {
         restartIterator()
-        if (iterator.isDefined) None else Some(iterator.get.next().assignments)
+        if (iterator.isEmpty) None else Some(iterator.get.next().assignments)
       }
       case Some(x) =>  if (x.isEmpty) None else Some(x.next().assignments)
     }
 
-    cspAss match {
+    val toreturn = cspAss match {
       case None => None
       case Some(x) => Some(Assignments(x.mapVarValue ++ randCVars.flatMap(x => Map(x._1 -> x._2.next())).toMap))
     }
+    cAssignments = toreturn
+    toreturn
   }
 
   def constraintBlock(constraints: Constraint*): ConstraintBlock = {
@@ -211,30 +214,25 @@ object RandomMacros {
       sname = s.name.decodedName.toString
       gname = g.name.decodedName.toString
       if t.isTerm && !t.isMethod && sname == tname + "_=" && g.isMethod && gname == tname
-    } yield (t, s, g)
-
-    val mapOfVars = lol.groupBy(z => Variable(z._1.toString))
-    println(mapOfVars)
-//    val operations = lol.map { x =>
-//      val first = x._1.asTerm.name
-//      val second = x._2.asTerm.name
-//      val third = x._3.asTerm.name
-//      val fistname = first.decodedName.toString.filter(_ != ' ')
-//      q"""
-//          val out = $self.randomizeImpl()
-//          if (out.isDefined) {
-//            val
-//          }
-//          val variable = csp.Variable($fistname)
-//          if ($self.randVarsM.contains(variable)) $self.$second = $self.$third + 1
-//       """
-    q"""
-
-          val out = $self.randomizeImp()
-          println("Helllllllo")
-          if (out.isDefined) {
-            println(out.get)
+    } yield (t.asTerm.name.toString.filter(_ != ' '), s.asTerm.name, g.asTerm.name)
+    // TODO: Filter non rand vars
+    // val mapOfVars = lol.groupBy(z => Variable(z._1))
+    val operations = lol.map { x =>
+       val variable = x._1
+       val setter = x._2
+      println(x)
+      q"""
+          val myVar = Variable($variable)
+          if ($self.cAssignments.isDefined) {
+            if ($self.randVarsM.contains(myVar)) {
+              val assignments = $self.cAssignments.get
+              $self.$setter = assignments(myVar)
           }
+         }
+       """
+    }
+    q"""
+       ..$operations
      """
   }
 }
