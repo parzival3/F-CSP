@@ -6,13 +6,13 @@ import csp.{Assignments, CSP, Constraint, Domain, Node, Solution, Variable}
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.reflect.macros.blackbox.Context
-object Random {
+
+object Random{
   type RandInt = Int
   type RandArray = Array[Int]
 }
 
 class Random(val seed: Int = 42) {
-
 
   var cspO: Option[CSP] = None
   var randVars: List[(Variable, Domain)] = List[(Variable, Domain)]()
@@ -54,13 +54,13 @@ class Random(val seed: Int = 42) {
     val iter = LazyList.continually(myMap._2).flatten.iterator
     randCVarsM = randCVarsM += Variable(myMap._1) -> iter
   }
-
   def rand(param: Array[Int]): Array[Int] = macro sv.RandomMacros.randArray
   def rand(param: Int, dom: Range): Int = macro sv.RandomMacros.randVarDec
   def svrandc(param: Any): Variable = macro sv.RandomMacros.svrandcImpl
   def consMacro(param: (Int) => Boolean): ConstraintBlock = macro sv.RandomMacros.addConstraintBlock
-  def un(param: (Int) => Boolean): Constraint = macro sv.RandomMacros.createUnary
-  def randomMacro[T]: Unit = macro sv.RandomMacros.svrandomMacroImpl[T]
+  def unary(param: (Int) => Boolean): Constraint = macro sv.RandomMacros.createUnary
+  def binary(param: (Int, Int) => Boolean): Constraint = macro sv.RandomMacros.createBinary
+  def randomMacro: Unit = macro sv.RandomMacros.svrandomMacroImpl
 
   def randc_impl(myMap: (String, List[Int])): Variable = {
     val iter = LazyList.continually(myMap._2).flatten.iterator
@@ -70,11 +70,11 @@ class Random(val seed: Int = 42) {
   }
 
   def restartIterator(): Unit = {
-    cspO = Some(new CSP(randVars.toMap.keySet.toList, randVars.toMap, mapOfConstraint.toList))
+    cspO = Some(new CSP(randVarsM.keys.toList, randVarsM.toMap, mapOfConstraint.toList))
     iterator = Some(Solution(cspO.get, Assignments(), seed).backtrackingSearch(cspO.get).iterator)
   }
 
-  def randomize(): Option[Assignments] = {
+  def randomizeImp(): Option[Assignments] = {
     val cspAss = iterator match {
       case None => {
         restartIterator()
@@ -107,44 +107,53 @@ object RandomMacros {
 
   def svrandcImpl(c: Context)(param: c.Expr[Any]): c.Tree = {
     import c.universe._
-    if (param.actualType.toString == "Array[Int]") {
-      val paramRep = show(param.tree)
-      val paramRepTree = Literal(Constant(paramRep))
-      println(paramRepTree.toString())
-    }
-    reify { println(param.splice) }
     val self = c.prefix
     val dom = List(1, 2, 3)
     val paramRep = show(param.tree)
     val newName = paramRep.substring(paramRep.lastIndexOf(".") + 1)
     q"""
-        println($paramRep)
         $self.rand_impl(($newName, $dom))
      """
   }
+
   def addConstraintBlock(c: Context)(param: c.Expr[Int => Boolean]): c.Tree = {
     import c.universe._
     val Function(args, _) = param.tree
-    println(args)
     val ValDef(_, name, _, _) = args(0)
     val self = c.prefix
-    val func = reify{param.splice}
+    val func = reify {
+      param.splice
+    }
     q"""
        $self.constraintBlock {
         _root_.csp.Unary(_root_.csp.Variable($name.toString), $func)
       }"""
   }
 
+  def createBinary(c: Context)(param: c.Expr[(Int, Int) => Boolean]): c.Tree = {
+    import c.universe._
+    val Function(args, _) = param.tree
+    val ValDef(_, x_name, _, _) = args(0)
+    val ValDef(_, y_name, _, _) = args(1)
+    val varx = x_name.toString
+    val vary = y_name.toString
+    val func = reify {
+      param.splice
+    }
+    c.untypecheck(param.tree)
+    q"_root_.csp.Binary(_root_.csp.Variable($varx), _root_.csp.Variable($vary), $func)"
+  }
+
   def createUnary(c: Context)(param: c.Expr[Int => Boolean]): c.Tree = {
     import c.universe._
     val Function(args, _) = param.tree
-    println(args)
     val ValDef(_, name, _, _) = args(0)
     val varName = name.toString
-    val func = reify{param.splice}
-    q"""
-        _root_.csp.Unary(_root_.csp.Variable($varName), $func)
-    """
+    val func = reify {
+      param.splice
+    }
+    c.untypecheck(param.tree)
+    q"_root_.csp.Unary(_root_.csp.Variable($varName), $func)"
   }
 
   def randArray(c: Context)(param: c.Expr[sv.Random.RandArray]): c.Tree = {
@@ -164,6 +173,7 @@ object RandomMacros {
   /**
     * Random Variable Declaration, this functions declares a random variable by setting its value to 0 and
     * adds it to the randVarM variables database.
+    *
     * @param c
     * @param param
     * @param dom
@@ -189,35 +199,39 @@ object RandomMacros {
     }
   }
 
-  def svrandomMacroImpl[T: c.WeakTypeTag](c: Context): c.Tree = {
+  def svrandomMacroImpl(c: Context): c.Tree = {
     import c.universe._
     val self = c.prefix
+    val currentType = self.actualType.baseType(self.actualType.baseClasses(0))
     val lol = for {
-      t <- weakTypeOf[T].members
-      s <- weakTypeOf[T].members
-      g <- weakTypeOf[T].members
+      t <- currentType.members
+      s <- currentType.members
+      g <- currentType.members
       tname = t.name.decodedName.toString.filter(_ != ' ')
       sname = s.name.decodedName.toString
       gname = g.name.decodedName.toString
       if t.isTerm && !t.isMethod && sname == tname + "_=" && g.isMethod && gname == tname
     } yield (t, s, g)
-    lol.foreach(x => println((x._1.name.decodedName.toString.filter(_ != ' '), x._2.name.decodedName.toString, x._3.name.decodedName.toString)))
-    val operations = lol.map{x =>
-      val first = x._1.asTerm.name
-      val second = x._2.asTerm.name
-      val third = x._3.asTerm.name
-      val fistname = first.decodedName.toString.filter(_ != ' ')
-      q"""
-          val variable = csp.Variable($fistname)
-          println(variable)
-          if ($self.randVarsM.contains(variable)) $self.$second = $self.$third + 1
-       """
+
+    val mapOfVars = lol.groupBy(z => Variable(z._1.toString))
+    println(mapOfVars)
+//    val operations = lol.map { x =>
+//      val first = x._1.asTerm.name
+//      val second = x._2.asTerm.name
+//      val third = x._3.asTerm.name
+//      val fistname = first.decodedName.toString.filter(_ != ' ')
+//      q"""
+//          val out = $self.randomizeImpl()
+//          if (out.isDefined) {
+//            val
+//          }
+//          val variable = csp.Variable($fistname)
+//          if ($self.randVarsM.contains(variable)) $self.$second = $self.$third + 1
+//       """
 
     }
     q"""
       ..$operations
      """
   }
-
-
 }

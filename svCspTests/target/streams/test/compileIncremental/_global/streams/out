@@ -1,55 +1,24 @@
-[0m[[0m[0mdebug[0m] [0m[0mThe sv.Random$ source file declares a macro.[0m
-[0m[[0m[0mdebug[0m] [0m[0mAll member reference dependencies will be considered within this context.[0m
-[0m[[0m[0mdebug[0m] [0m[0mFiles invalidated by inheriting from (external) sv.Random$: Set(); now invalidating by inheritance (internally).[0m
-[0m[[0m[0mdebug[0m] [0m[0mGetting direct dependencies of all classes transitively invalidated by inheritance.[0m
-[0m[[0m[0mdebug[0m] [0m[0mGetting classes that directly depend on (external) sv.Random$.[0m
-[0m[[0m[0mdebug[0m] [0m[0mThe following member ref dependencies of sv.Random$ are invalidated:[0m
-[0m[[0m[0mdebug[0m] [0m[0m	TestMacros[0m
-[0m[[0m[0mdebug[0m] [0m[0m	TestMacros.Hello[0m
-[0m[[0m[0mdebug[0m] [0m[0m	sv.Example2.Frame[0m
-[0m[[0m[0mdebug[0m] [0m[0m	sv.Frame[0m
-[0m[[0m[0mdebug[0m] [0m[0mThe sv.Random source file declares a macro.[0m
-[0m[[0m[0mdebug[0m] [0m[0mAll member reference dependencies will be considered within this context.[0m
-[0m[[0m[0mdebug[0m] [0m[0mFiles invalidated by inheriting from (external) sv.Random: Set(sv.Example2.Frame, sv.Frame, TestMacros.Hello); now invalidating by inheritance (internally).[0m
-[0m[[0m[0mdebug[0m] [0m[0mInvalidating (transitively) by inheritance from sv.Example2.Frame...[0m
-[0m[[0m[0mdebug[0m] [0m[0mInitial set of included nodes: sv.Example2.Frame[0m
-[0m[[0m[0mdebug[0m] [0m[0mInvalidated by transitive inheritance dependency: Set(sv.Example2.Frame)[0m
-[0m[[0m[0mdebug[0m] [0m[0mInvalidating (transitively) by inheritance from sv.Frame...[0m
-[0m[[0m[0mdebug[0m] [0m[0mInitial set of included nodes: sv.Frame[0m
-[0m[[0m[0mdebug[0m] [0m[0mInvalidated by transitive inheritance dependency: Set(sv.Frame)[0m
-[0m[[0m[0mdebug[0m] [0m[0mInvalidating (transitively) by inheritance from TestMacros.Hello...[0m
-[0m[[0m[0mdebug[0m] [0m[0mInitial set of included nodes: TestMacros.Hello[0m
-[0m[[0m[0mdebug[0m] [0m[0mInvalidated by transitive inheritance dependency: Set(TestMacros.Hello)[0m
-[0m[[0m[0mdebug[0m] [0m[0mGetting direct dependencies of all classes transitively invalidated by inheritance.[0m
-[0m[[0m[0mdebug[0m] [0m[0mGetting classes that directly depend on (external) sv.Random.[0m
-[0m[[0m[0mdebug[0m] [0m[0mThe following member ref dependencies of sv.Random are invalidated:[0m
-[0m[[0m[0mdebug[0m] [0m[0m	TestMacros[0m
-[0m[[0m[0mdebug[0m] [0m[0m	TestMacros.Hello[0m
-[0m[[0m[0mdebug[0m] [0m[0m	sv.Example1[0m
-[0m[[0m[0mdebug[0m] [0m[0m	sv.Example2[0m
-[0m[[0m[0mdebug[0m] [0m[0m	sv.Example2.Frame[0m
-[0m[[0m[0mdebug[0m] [0m[0m	sv.Frame[0m
 [0m[[0m[0mdebug[0m] [0m[0m[0m
 [0m[[0m[0mdebug[0m] [0m[0mInitial source changes: [0m
 [0m[[0m[0mdebug[0m] [0m[0m	removed:Set()[0m
 [0m[[0m[0mdebug[0m] [0m[0m	added: Set()[0m
-[0m[[0m[0mdebug[0m] [0m[0m	modified: Set()[0m
+[0m[[0m[0mdebug[0m] [0m[0m	modified: Set(/home/enrico/Git/csp/svCspTests/src/test/scala/TestMacros.scala)[0m
 [0m[[0m[0mdebug[0m] [0m[0mInvalidated products: Set()[0m
-[0m[[0m[0mdebug[0m] [0m[0mExternal API changes: API Changes: Set(APIChangeDueToMacroDefinition(sv.Random$), APIChangeDueToMacroDefinition(sv.Random))[0m
+[0m[[0m[0mdebug[0m] [0m[0mExternal API changes: API Changes: Set()[0m
 [0m[[0m[0mdebug[0m] [0m[0mModified binary dependencies: Set()[0m
-[0m[[0m[0mdebug[0m] [0m[0mInitial directly invalidated classes: Set()[0m
+[0m[[0m[0mdebug[0m] [0m[0mInitial directly invalidated classes: Set(TestMacros, TestMacros.Hello)[0m
 [0m[[0m[0mdebug[0m] [0m[0m[0m
 [0m[[0m[0mdebug[0m] [0m[0mSources indirectly invalidated by:[0m
 [0m[[0m[0mdebug[0m] [0m[0m	product: Set()[0m
 [0m[[0m[0mdebug[0m] [0m[0m	binary dep: Set()[0m
-[0m[[0m[0mdebug[0m] [0m[0m	external source: Set(sv.Example2, sv.Example2.Frame, sv.Frame, TestMacros, sv.Example1, TestMacros.Hello)[0m
-[0m[[0m[0mdebug[0m] [0m[0mAll initially invalidated classes: Set(sv.Example2, sv.Example2.Frame, sv.Frame, TestMacros, sv.Example1, TestMacros.Hello)[0m
-[0m[[0m[0mdebug[0m] [0m[0mAll initially invalidated sources:Set()[0m
-[0m[[0m[0mdebug[0m] [0m[0mInitial set of included nodes: sv.Example2, sv.Example2.Frame, sv.Frame, TestMacros, sv.Example1, TestMacros.Hello[0m
-[0m[[0m[0minfo[0m] [0m[0mCompiling 3 Scala sources to /home/enrico/Git/csp/svCspTests/target/scala-2.13/test-classes ...[0m
+[0m[[0m[0mdebug[0m] [0m[0m	external source: Set()[0m
+[0m[[0m[0mdebug[0m] [0m[0mAll initially invalidated classes: Set(TestMacros, TestMacros.Hello)[0m
+[0m[[0m[0mdebug[0m] [0m[0mAll initially invalidated sources:Set(/home/enrico/Git/csp/svCspTests/src/test/scala/TestMacros.scala)[0m
+[0m[[0m[0mdebug[0m] [0m[0mInitial set of included nodes: TestMacros, TestMacros.Hello[0m
+[0m[[0m[0minfo[0m] [0m[0mCompiling 1 Scala source to /home/enrico/Git/csp/svCspTests/target/scala-2.13/test-classes ...[0m
 [0m[[0m[0mdebug[0m] [0m[0mGetting org.scala-sbt:compiler-bridge_2.13:1.3.5:compile for Scala 2.13.3[0m
 [0m[[0m[0mdebug[0m] [0m[0mGetting org.scala-sbt:compiler-bridge_2.13:1.3.5:compile for Scala 2.13.3[0m
-[0m[[0m[0mdebug[0m] [0m[0m[zinc] Running cached compiler 63681032 for Scala compiler version 2.13.3[0m
+[0m[[0m[0mdebug[0m] [0m[0m[zinc] Running cached compiler 69c9b80f for Scala compiler version 2.13.3[0m
 [0m[[0m[0mdebug[0m] [0m[0m[zinc] The Scala compiler is invoked with:[0m
 [0m[[0m[0mdebug[0m] [0m[0m	-encoding[0m
 [0m[[0m[0mdebug[0m] [0m[0m	utf8[0m
@@ -94,7 +63,7 @@
 [0m[[0m[0mdebug[0m] [0m[0m	/home/enrico/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.3/scala-library-2.13.3.jar[0m
 [0m[[0m[0mdebug[0m] [0m[0m	-classpath[0m
 [0m[[0m[0mdebug[0m] [0m[0m	/home/enrico/Git/csp/svCspTests/target/scala-2.13/test-classes:/home/enrico/Git/csp/svCspTests/target/scala-2.13/classes:/home/enrico/Git/csp/target/scala-2.13/classes:/home/enrico/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scalatest/scalatest_2.13/3.2.0/scalatest_2.13-3.2.0.jar:/home/enrico/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.3/scala-reflect-2.13.3.jar:/home/enrico/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_2.13/3.2.0/scalatest-core_2.13-3.2.0.jar:/home/enrico/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_2.13/3.2.0/scalatest-featurespec_2.13-3.2.0.jar:/home/enrico/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_2.13/3.2.0/scalatest-flatspec_2.13-3.2.0.jar:/home/enrico/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_2.13/3.2.0/scalatest-freespec_2.13-3.2.0.jar:/home/enrico/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_2.13/3.2.0/scalatest-funsuite_2.13-3.2.0.jar:/home/enrico/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_2.13/3.2.0/scalatest-funspec_2.13-3.2.0.jar:/home/enrico/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_2.13/3.2.0/scalatest-propspec_2.13-3.2.0.jar:/home/enrico/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_2.13/3.2.0/scalatest-refspec_2.13-3.2.0.jar:/home/enrico/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_2.13/3.2.0/scalatest-wordspec_2.13-3.2.0.jar:/home/enrico/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_2.13/3.2.0/scalatest-diagrams_2.13-3.2.0.jar:/home/enrico/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_2.13/3.2.0/scalatest-matchers-core_2.13-3.2.0.jar:/home/enrico/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_2.13/3.2.0/scalatest-shouldmatchers_2.13-3.2.0.jar:/home/enrico/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_2.13/3.2.0/scalatest-mustmatchers_2.13-3.2.0.jar:/home/enrico/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.0/scalatest-compatible-3.2.0.jar:/home/enrico/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.13/3.2.0/scalactic_2.13-3.2.0.jar:/home/enrico/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.13/1.2.0/scala-xml_2.13-1.2.0.jar[0m
-[0m[[0m[0mdebug[0m] [0m[0mScala compilation took 0.521005306 s[0m
+[0m[[0m[0mdebug[0m] [0m[0mScala compilation took 0.424144242 s[0m
 [0m[[0m[0minfo[0m] [0m[0mDone compiling.[0m
 [0m[[0m[0mdebug[0m] [0m[0mNew invalidations:[0m
 [0m[[0m[0mdebug[0m] [0m[0m	Set()[0m

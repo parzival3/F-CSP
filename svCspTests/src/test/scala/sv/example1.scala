@@ -27,14 +27,14 @@ class Example1 extends AnyFlatSpec {
 
   it should "be able to randomize a Frame" in {
     val frame = new Frame
-    var randomFrame = frame.randomize()
+    var randomFrame = frame.randomizeImp()
     while (randomFrame.isDefined ) {
       val values = randomFrame.get
       println(values)
       assert(values(frame.len) >= 2)
       assert(values(frame.len) <= 5)
       assert(values(frame.len) == values(frame.payload))
-      randomFrame = frame.randomize()
+      randomFrame = frame.randomizeImp()
     }
   }
 }

@@ -41,27 +41,27 @@ class Example2 extends AnyFlatSpec {
 
     println("Remove multicast")
     frame.multicast.disable()
-    var randomFrame = frame.randomize()
+    var randomFrame = frame.randomizeImp()
     while (randomFrame.isDefined ) {
       val values = randomFrame.get
       println(values)
       assert(values(frame.len) <= 2)
       assert(values(frame.len) == values(frame.payload))
       assert(values(frame.pType) == UNICAST.id)
-      randomFrame = frame.randomize()
+      randomFrame = frame.randomizeImp()
     }
 
     println("Enable multicast Disable unicast")
     frame.unicast.disable()
     frame.multicast.enable()
-    randomFrame = frame.randomize()
+    randomFrame = frame.randomizeImp()
     while (randomFrame.isDefined ) {
       val values = randomFrame.get
       println(values)
       assert(values(frame.len) <= 4 && values(frame.len) >= 3)
       assert(values(frame.len) == values(frame.payload))
       assert(values(frame.pType) == MULTICAST.id)
-      randomFrame = frame.randomize()
+      randomFrame = frame.randomizeImp()
     }
 
   }
