@@ -20,7 +20,7 @@ class TestMacros extends AnyFlatSpec {
   it should "accept svrandc param" in {
     val o = new Hello
     assert(o.z == 0)
-    o.randomMacro
+    o.randomize
     assert(o.z == 1)
     assert(o.y == 1)
     assert(o.randVarsM.size == 2)

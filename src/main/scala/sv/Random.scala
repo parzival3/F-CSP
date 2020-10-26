@@ -60,7 +60,7 @@ class Random(val seed: Int = 42) {
   def consMacro(param: (Int) => Boolean): ConstraintBlock = macro sv.RandomMacros.addConstraintBlock
   def unary(param: (Int) => Boolean): Constraint = macro sv.RandomMacros.createUnary
   def binary(param: (Int, Int) => Boolean): Constraint = macro sv.RandomMacros.createBinary
-  def randomMacro: Unit = macro sv.RandomMacros.svrandomMacroImpl
+  def randomize: Unit = macro sv.RandomMacros.svrandomMacroImpl
 
   def randc_impl(myMap: (String, List[Int])): Variable = {
     val iter = LazyList.continually(myMap._2).flatten.iterator
@@ -70,7 +70,7 @@ class Random(val seed: Int = 42) {
   }
 
   def restartIterator(): Unit = {
-    cspO = Some(new CSP(randVarsM.keys.toList, randVarsM.toMap, mapOfConstraint.toList))
+    cspO = Some(new CSP(randVars.toMap.keys.toList, randVars.toMap, mapOfConstraint.toList))
     iterator = Some(Solution(cspO.get, Assignments(), seed).backtrackingSearch(cspO.get).iterator)
   }
 
@@ -228,10 +228,13 @@ object RandomMacros {
 //          val variable = csp.Variable($fistname)
 //          if ($self.randVarsM.contains(variable)) $self.$second = $self.$third + 1
 //       """
-
-    }
     q"""
-      ..$operations
+
+          val out = $self.randomizeImp()
+          println("Helllllllo")
+          if (out.isDefined) {
+            println(out.get)
+          }
      """
   }
 }

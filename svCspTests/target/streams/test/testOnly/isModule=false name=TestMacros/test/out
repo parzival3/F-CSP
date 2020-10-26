@@ -1,4 +1,5 @@
 [0m[[0m[0minfo[0m] [0m[0m[32mTestMacros:[0m[0m
 [0m[[0m[0minfo[0m] [0m[0m[32mSVMacros[0m[0m
-[0m[[0m[0minfo[0m] [0m[0m[32m- should accept svrandc param[0m[0m
+[0m[[0m[0minfo[0m] [0m[0m[31m- should accept svrandc param *** FAILED ***[0m[0m
+[0m[[0m[0minfo[0m] [0m[0m[31m  0 did not equal 1 (TestMacros.scala:24)[0m[0m
 [0m[[0m[0minfo[0m] [0m[0m[32m- should accpet domain param[0m[0m
