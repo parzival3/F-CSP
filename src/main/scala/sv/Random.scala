@@ -66,7 +66,7 @@ class Random(val seed: Int = 42) {
   def randc(param: Int, dom: Range): Int = macro sv.RandomMacros.randCVarDec
   def unary(param: (Int) => Boolean): Constraint = macro sv.RandomMacros.createUnary
   def binary(param: (Int, Int) => Boolean): Constraint = macro sv.RandomMacros.createBinary
-  def randomize: Unit = macro sv.RandomMacros.randomMacroImpl
+  def randomize: Boolean = macro sv.RandomMacros.randomMacroImpl
 
   def randc_impl(myMap: (String, List[Int])): Variable = {
     val iter = LazyList.continually(myMap._2).flatten.iterator
@@ -116,21 +116,32 @@ class Random(val seed: Int = 42) {
 }
 
 object RandomMacros extends Random {
-
+  /**
+    * Macro to create a binary constraint from lambda function
+    * @param c Context
+    * @param param lambda function to apply on the specific variables expressed inside the function
+    * @return
+    */
   def createBinary(c: blackbox.Context)(param: c.Expr[(Int, Int) => Boolean]): c.Tree = {
     import c.universe._
     val Function(args, _) = param.tree
-    val ValDef(_, x_name, _, _) = args.head
-    val ValDef(_, y_name, _, _) = args(1)
-    val varx = x_name.toString
-    val vary = y_name.toString
+    val ValDef(_, xName, _, _) = args.head
+    val ValDef(_, yName, _, _) = args(1)
+    val varX = xName.toString
+    val varY = yName.toString
     val func = reify {
       param.splice
     }
     c.untypecheck(param.tree)
-    q"_root_.csp.Binary(_root_.csp.Variable($varx), _root_.csp.Variable($vary), $func)"
+    q"_root_.csp.Binary(_root_.csp.Variable($varX), _root_.csp.Variable($varY), $func)"
   }
 
+  /**
+    * Macro to create a unary constraint from lambda function
+    * @param c Context
+    * @param param lambda function to apply on the specific variables expressed inside the function
+    * @return
+    */
   def createUnary(c: blackbox.Context)(param: c.Expr[Int => Boolean]): c.Tree = {
     import c.universe._
     val Function(args, _) = param.tree
@@ -139,16 +150,22 @@ object RandomMacros extends Random {
     val func = reify {
       param.splice
     }
-    c.untypecheck(param.tree)
+     c.untypecheck(param.tree)
     q"_root_.csp.Unary(_root_.csp.Variable($varName), $func)"
   }
 
+  /**
+    * TODO: Complete the method
+    * @param c Context
+    * @param param Variable
+    * @return
+    */
   def randArray(c: blackbox.Context)(param: c.Expr[sv.Random.RandArray]): c.Tree = {
     import c.universe._
     val typeString = param.actualType.toString
     val paramRep = show(param.tree)
     val newName = paramRep.substring(paramRep.lastIndexOf(".") + 1)
-    // TODO: How can we check for a specific type?
+    // TODO: How can we check for a specific type?... matching a string is not very safe
     typeString match {
       case "sv.Random.RandArray" => q"Array(10)"
       case _ => q"""
@@ -157,18 +174,19 @@ object RandomMacros extends Random {
     }
   }
 
+
   /**
-    * Random Variable Declaration, this functions declares a random variable by setting its value to 0 and
-    * adds it to the randVarM variables database.
+    * Continuous Random Variable Declaration, this functions declares a random variable by setting its value to 0 and
+    * adds it to the randCVarM variables database.
     *
-    * @param c
-    * @param param
-    * @param dom
+    * @param c Context
+    * @param param the current field that will be randomized
+    * @param dom the domain in which the current variable has meaning
     * @return
     */
-  def randCVarDec(c: blackbox.Context)(param: c.Expr[sv.Random.RandCInt], dom: c.Tree): c.Tree = {
+ def randCVarDec(c: blackbox.Context)(param: c.Expr[sv.Random.RandCInt], dom: c.Tree): c.Tree = {
     import c.universe._
-    // TODO: using Tree is not very safe
+    // TODO: How can we check for a specific type?... matching a string is not very safe
     val self = c.prefix
     val typeString = param.actualType.toString
     val paramRep = show(param.tree)
@@ -190,9 +208,9 @@ object RandomMacros extends Random {
     * Random Variable Declaration, this functions declares a random variable by setting its value to 0 and
     * adds it to the randVarM variables database.
     *
-    * @param c
-    * @param param
-    * @param dom
+    * @param c Context
+    * @param param the current field that will be randomized
+    * @param dom the domain in which the current variable has meaning
     * @return
     */
   def randVarDec(c: blackbox.Context)(param: c.Expr[sv.Random.RandInt], dom: c.Tree): c.Tree = {
@@ -202,7 +220,7 @@ object RandomMacros extends Random {
     val typeString = param.actualType.toString
     val paramRep = show(param.tree)
     val newName = paramRep.substring(paramRep.lastIndexOf(".") + 1)
-    // TODO: How can we check for a specific type?
+    // TODO: How can we check for a specific type?... matching a string is not very safe
     typeString match {
       case "sv.Random.RandInt" =>
         q"""
@@ -215,19 +233,32 @@ object RandomMacros extends Random {
     }
   }
 
+  /**
+    * Macro that randomizes the current class by solving a CSP
+    * TODO: How should we handle the randomization errors?
+    * @param c Context
+    * @return Boolean
+    */
   def randomMacroImpl(c: blackbox.Context): c.Tree = {
     import c.universe._
     val self = c.prefix
     // Get the current class type
     val currentType = self.actualType.baseType(self.actualType.baseClasses.head)
-    val lol = for {
+    // Map containing all the terms name and their corresponding setters
+    val nsMap = for {
       t <- currentType.members
       s <- currentType.members
       tName = t.name.decodedName.toString.filter(_ != ' ')
       sName = s.name.decodedName.toString
       if t.isTerm && !t.isMethod && sName == tName + "_="
     } yield (t.asTerm.name.toString.filter(_ != ' '), s.asTerm.name)
-    val operations = lol.map { x =>
+
+    /**
+      * For each of the terms/variables in the current class, check if the current variable is defined in one of the
+      * maps and assign the new value
+      * This is necessary because I couldn't find an easy way to lift [[nsMap]] inside a quasiquote.
+      */
+    val operations = nsMap.map { x =>
        val variable = x._1
        val setter = x._2
       q"""
@@ -240,9 +271,15 @@ object RandomMacros extends Random {
           }
        """
     }
+
+    /**
+      * First call randomize implementation in order to populate the assignments and then assign the new value
+      * to each variable
+       */
     q"""
        $self.randomizeImp()
        ..$operations
+       $self.cAssignments.isDefined
      """
   }
 }

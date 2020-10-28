@@ -22,6 +22,12 @@ class TestMacros extends AnyFlatSpec {
 
     val o = new Hello
     assert(o.z == 0)
+    assert(o.randVarsM.size == 3)
+    assert(o.randVarsM.contains(Variable("l")))
+    assert(o.randVarsM.contains(Variable("z")))
+    assert(o.mapOfConstraint.size == 2)
+    assert(o.mapOfConstraint(0).isUnary)
+    assert(o.mapOfConstraint(0).relatesToVar(Variable("z")))
     o.randomize
     assert(o.z < o.y)
     assert(o.z > 3)
