@@ -82,7 +82,7 @@ class Random(val seed: Int = 42) {
 
   def randomizeImp(): Option[Assignments] = {
     // TODO: change return in Boolean
-    if (randCVars.isEmpty) {
+    if (randVarsM.isEmpty) {
       cAssignments = Some(Assignments(randCVarsM.flatMap(x => Map(x._1 -> x._2.next())).toMap))
       cAssignments
     } else {
