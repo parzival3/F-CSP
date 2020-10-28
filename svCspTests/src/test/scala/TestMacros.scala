@@ -1,8 +1,7 @@
-// import constraint.SVMacros.RandInt
-//import csp.Variable
 import csp.Variable
 import org.scalatest.flatspec.AnyFlatSpec
 import sv.Random.{RandCInt, RandInt}
+import scala.language.postfixOps
 
 class TestMacros extends AnyFlatSpec {
   behavior of "SVMacros"
@@ -10,9 +9,9 @@ class TestMacros extends AnyFlatSpec {
   it should "accept svrandc param" in {
 
     class Hello extends sv.Random {
-      var z: RandInt = rand (z, 0 to 10)
-      var y: RandInt = rand (y, 0 to 10)
-      var l: RandInt = rand (l, 0 to 20)
+      var z: RandInt = rand (z, 0 to 10 toList)
+      var y: RandInt = rand (y, 0 to 10 toList)
+      var l: RandInt = rand (l, 0 to 20 toList)
       val block = constraintBlock (
         unary { (z) => z > 3 },
         binary { (z, y) => z < y }
@@ -42,8 +41,8 @@ class TestMacros extends AnyFlatSpec {
 
   it should "be able to add randc variables" in {
     class ClassWithRandC extends sv.Random {
-      var randCvar: RandCInt = randc (randCvar, 1 to 10)
-      var randvar: RandCInt = randc (randvar, 1 to 23)
+      var randCvar: RandCInt = randc (randCvar, 1 to 10 toList)
+      var randvar: RandCInt = randc (randvar, 1 to 23 toList)
     }
 
     val myClass = new ClassWithRandC

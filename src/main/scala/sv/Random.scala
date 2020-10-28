@@ -1,7 +1,6 @@
 package sv
 //import constraint.SVMacros.RandInt
 
-import csp.{Assignments, CSP, Constraint, Domain, Node, Solution, Variable}
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -15,6 +14,7 @@ object Random{
 
 class Random(val seed: Int = 42) {
 
+  import csp.{Assignments, CSP, Constraint, Domain, Node, Solution, Variable}
   /**
     * For convenience during development these attributes are public
     * TODO: change back to private
@@ -62,8 +62,8 @@ class Random(val seed: Int = 42) {
   }
 
   def rand(param: Array[Int]): Array[Int] = macro sv.RandomMacros.randArray
-  def rand(param: Int, dom: Range): Int = macro sv.RandomMacros.randVarDec
-  def randc(param: Int, dom: Range): Int = macro sv.RandomMacros.randCVarDec
+  def rand(param: Int, dom: List[Int]): Int = macro sv.RandomMacros.randVarDec
+  def randc(param: Int, dom: List[Int]): Int = macro sv.RandomMacros.randCVarDec
   def unary(param: (Int) => Boolean): Constraint = macro sv.RandomMacros.createUnary
   def binary(param: (Int, Int) => Boolean): Constraint = macro sv.RandomMacros.createBinary
   def randomize: Boolean = macro sv.RandomMacros.randomMacroImpl
@@ -195,7 +195,7 @@ object RandomMacros extends Random {
     typeString match {
       case "sv.Random.RandCInt" =>
         q"""
-          $self.addRandCVar(($newName, $dom.toList))
+          $self.addRandCVar(($newName, $dom))
           0
         """
       case _ => q"""
@@ -224,7 +224,7 @@ object RandomMacros extends Random {
     typeString match {
       case "sv.Random.RandInt" =>
         q"""
-          $self.addRandVar(($newName, $dom.toList))
+          $self.addRandVar(($newName, $dom))
           0
         """
       case _ => q"""
@@ -262,16 +262,16 @@ object RandomMacros extends Random {
        val variable = x._1
        val setter = x._2
       q"""
-          val myVar = Variable($variable)
+          val myVar = csp.Variable($variable)
           if ($self.cAssignments.isDefined) {
             if ($self.randVarsM.contains(myVar) || $self.randCVarsM.contains(myVar)) {
               val assignments = $self.cAssignments.get
-              $self.$setter = assignments(myVar)
+              $self.$setter(assignments(myVar))
             }
           }
        """
     }
-
+    println(operations)
     /**
       * First call randomize implementation in order to populate the assignments and then assign the new value
       * to each variable
