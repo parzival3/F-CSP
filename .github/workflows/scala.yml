@@ -17,5 +17,9 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
+    - name: create sbt directory
+      run: mkdir -p ~/.sbt/1.0
+    - name: add Artima repository
+      run: echo "resolvers += \"Artima Maven Repository\" at \"http://repo.artima.com/releases\"" > .sbt/1.0/global.sbt
     - name: Run tests
       run: sbt test
