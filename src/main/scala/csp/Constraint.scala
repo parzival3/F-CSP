@@ -34,15 +34,15 @@ case class Binary(var1: Variable, var2: Variable, fun: (Int, Int) => Boolean) ex
     )
   }
 
+  // TODO: if something breaks take a look here
   override def relatesTo(variables: List[Variable]): Boolean = {
     require(variables.size == 2)
-    variables.contains(var1) || variables.contains(var2)
+    variables.contains(var1) && variables.contains(var2)
   }
 
   override def isSatisfied(mapVariableValue: Map[Variable, Int]): Boolean = {
     fun(mapVariableValue(var1), mapVariableValue(var2))
   }
-
   override def relatesToVar(variable: Variable): Boolean = {
     variable == var1 || variable == var2
   }

@@ -2,6 +2,7 @@ package csp
 
 import org.scalatest.flatspec.AnyFlatSpec
 
+
 class TestArcConsistency extends AnyFlatSpec {
   behavior.of("Solution")
 

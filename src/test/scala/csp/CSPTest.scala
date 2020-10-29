@@ -46,7 +46,6 @@ class CSPTest extends AnyFlatSpec {
     import generalFixture._
     val directGraph = List(c1, c3)
     val csp = new CSP(List(varA, varB, varC), listOf3Domains, directGraph)
-    println(csp.getConstraints(List(varA, varB)))
     assert(List(c1) == csp.getConstraints(List(varA, varB)))
     assert(List(c3) == csp.getConstraints(List(varC, varB)))
     assert(List(c1) == csp.getConstraints(List(varB, varA)))
