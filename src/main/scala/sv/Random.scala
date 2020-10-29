@@ -20,18 +20,24 @@ class Random(val seed: Int = 42) {
     * TODO: change back to private
     */
   var cspO: Option[CSP] = None
-  var randVars: List[(Variable, Domain)] = List[(Variable, Domain)]()
   var randVarsM: mutable.HashMap[Variable, Domain] = mutable.HashMap[Variable, Domain]()
   val mapOfConstraint: ListBuffer[Constraint] = ListBuffer[Constraint]()
-  var randCVars: List[(Variable, Iterator[Int])] = List[(Variable, Iterator[Int])]()
   var randCVarsM: mutable.HashMap[Variable, Iterator[Int]] = mutable.HashMap[Variable, Iterator[Int]]()
   var iterator: Option[Iterator[Solution with Node]] = None
   var cAssignments: Option[Assignments] = Some(Assignments())
 
+  def rand(param: Array[Int]): Array[Int] = macro sv.RandomMacros.randArray
+  def rand(param: Int, dom: List[Int]): Int = macro sv.RandomMacros.randVarDec
+  def randc(param: Int, dom: List[Int]): Int = macro sv.RandomMacros.randCVarDec
+  def unary(param: (Int) => Boolean): Constraint = macro sv.RandomMacros.createUnary
+  def binary(param: (Int, Int) => Boolean): Constraint = macro sv.RandomMacros.createBinary
+  def randomize: Boolean = macro sv.RandomMacros.randomMacroImpl
+  def debug: String = macro sv.RandomMacros.debugImpl
+
   /**
    * Constraint block class. This class encapsulate a list of constraints.
-   * @param constraints
-   * @param r
+   * @param constraints Constraints
+   * @param r Random
    */
   class ConstraintBlock(val constraints: List[Constraint], val r: Random) {
     def disable(): Unit = {
@@ -45,13 +51,6 @@ class Random(val seed: Int = 42) {
     }
   }
 
-  def rand_impl(myMap: (String, List[Int])): Variable = {
-    val addVar = Variable(myMap._1) -> Domain(myMap._2)
-    randVarsM += (Variable(myMap._1) -> Domain(myMap._2))
-    randVars = randVars ::: List(addVar)
-    Variable(myMap._1)
-  }
-
   def addRandVar(myMap: (String, List[Int])): Unit = {
     randVarsM = randVarsM += (Variable(myMap._1) -> Domain(myMap._2))
   }
@@ -59,20 +58,6 @@ class Random(val seed: Int = 42) {
   def addRandCVar(myMap: (String, List[Int])): Unit = {
     val iter = LazyList.continually(myMap._2).flatten.iterator
     randCVarsM = randCVarsM += Variable(myMap._1) -> iter
-  }
-
-  def rand(param: Array[Int]): Array[Int] = macro sv.RandomMacros.randArray
-  def rand(param: Int, dom: List[Int]): Int = macro sv.RandomMacros.randVarDec
-  def randc(param: Int, dom: List[Int]): Int = macro sv.RandomMacros.randCVarDec
-  def unary(param: (Int) => Boolean): Constraint = macro sv.RandomMacros.createUnary
-  def binary(param: (Int, Int) => Boolean): Constraint = macro sv.RandomMacros.createBinary
-  def randomize: Boolean = macro sv.RandomMacros.randomMacroImpl
-
-  def randc_impl(myMap: (String, List[Int])): Variable = {
-    val iter = LazyList.continually(myMap._2).flatten.iterator
-    val addVar = Variable(myMap._1) -> iter
-    randCVars = randCVars ::: List(addVar)
-    Variable(myMap._1)
   }
 
   def restartIterator(): Unit = {
@@ -132,7 +117,6 @@ object RandomMacros extends Random {
     val func = reify {
       param.splice
     }
-    c.untypecheck(param.tree)
     q"_root_.csp.Binary(_root_.csp.Variable($varX), _root_.csp.Variable($varY), $func)"
   }
 
@@ -150,7 +134,6 @@ object RandomMacros extends Random {
     val func = reify {
       param.splice
     }
-     c.untypecheck(param.tree)
     q"_root_.csp.Unary(_root_.csp.Variable($varName), $func)"
   }
 
@@ -164,6 +147,8 @@ object RandomMacros extends Random {
     import c.universe._
     val typeString = param.actualType.toString
     val paramRep = show(param.tree)
+    // Strip down the name
+    // TODO: probably it's not necessary? And [[randomMacroImpl]] can be simplified?
     val newName = paramRep.substring(paramRep.lastIndexOf(".") + 1)
     // TODO: How can we check for a specific type?... matching a string is not very safe
     typeString match {
@@ -190,6 +175,8 @@ object RandomMacros extends Random {
     val self = c.prefix
     val typeString = param.actualType.toString
     val paramRep = show(param.tree)
+    // Strip down the name
+    // TODO: probably it's not necessary? And [[randomMacroImpl]] can be simplified?
     val newName = paramRep.substring(paramRep.lastIndexOf(".") + 1)
     // TODO: How can we check for a specific type?
     typeString match {
@@ -234,6 +221,25 @@ object RandomMacros extends Random {
   }
 
   /**
+    * Get handle to all the filed in the current class, consider refactoring this function to use reflection
+    * and mirrors to get setters and getters
+    * @param c Context
+    * @param self Current class
+    * @tparam C type of Context
+    * @return
+    */
+  def getAssignedVars[C <: blackbox.Context](c: C)(self: c.Expr[c.PrefixType]): Iterable[(String, c.universe.TermName)] = {
+    val currentType = self.actualType.baseType(self.actualType.baseClasses.head)
+    for {
+      t <- currentType.members
+      s <- currentType.members
+      tName = t.name.decodedName.toString.filter(_ != ' ')
+      sName = s.name.decodedName.toString
+      if t.isTerm && !t.isMethod && sName == tName + "_="
+    } yield (t.asTerm.name.toString.filter(_ != ' '), s.asTerm.name)
+  }
+
+  /**
     * Macro that randomizes the current class by solving a CSP
     * TODO: How should we handle the randomization errors?
     * @param c Context
@@ -242,17 +248,7 @@ object RandomMacros extends Random {
   def randomMacroImpl(c: blackbox.Context): c.Tree = {
     import c.universe._
     val self = c.prefix
-    // Get the current class type
-    val currentType = self.actualType.baseType(self.actualType.baseClasses.head)
-    // Map containing all the terms name and their corresponding setters
-    val nsMap = for {
-      t <- currentType.members
-      s <- currentType.members
-      tName = t.name.decodedName.toString.filter(_ != ' ')
-      sName = s.name.decodedName.toString
-      if t.isTerm && !t.isMethod && sName == tName + "_="
-    } yield (t.asTerm.name.toString.filter(_ != ' '), s.asTerm.name)
-
+    val nsMap = getAssignedVars[c.type](c)(self)
     /**
       * For each of the terms/variables in the current class, check if the current variable is defined in one of the
       * maps and assign the new value
@@ -271,7 +267,6 @@ object RandomMacros extends Random {
           }
        """
     }
-    println(operations)
     /**
       * First call randomize implementation in order to populate the assignments and then assign the new value
       * to each variable
@@ -280,6 +275,38 @@ object RandomMacros extends Random {
        $self.randomizeImp()
        ..$operations
        $self.cAssignments.isDefined
+     """
+  }
+
+  /**
+    * Debug the current class by printing all the attributes
+    * TODO: complete the function, the best way to achieve this result is by reflection [https://docs.scala-lang.org/overviews/reflection/overview.html]
+    * We probably need to refactor [[getAssignedVars()]]
+    * @param c Context
+    * @return
+    */
+  def debugImpl(c: blackbox.Context): c.Tree = {
+    import c.universe._
+    // import scala.reflect.runtime.{universe => ru}
+    val self = c.prefix
+//    val currentType = self.actualType.baseType(self.actualType.baseClasses.head)
+//    val method = ru.typeOf[currentType.type].decl(ru.TermName("len")).asTerm
+//    val buffer = mutable.StringBuilder
+    val nsMap = getAssignedVars[c.type](c)(self)
+    nsMap.foreach { x =>
+      val variable = x._1
+      val setter = x._2
+      q"""
+         val myVar = csp.Variable($variable)
+         if ($self.randVarsM.contains(myVar) || $self.randCVarsM.contains(myVar)) {
+           val assignments = $self.cAssignments.get
+           $self.$setter(assignments(myVar))
+         }
+      $self.randVarsM.keys.map(x => x.name + " " ).mkString(", ")
+     """
+    }
+    q"""
+       "Not implemented"
      """
   }
 }
