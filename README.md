@@ -38,12 +38,51 @@ class Frame extends sv.Random(33) {
 ```
 
 ## CSP Solver
-Based on the ideas in the book [Artificial Intelligence A Modern Approach](https://www.pearson.com/us/higher-education/program/Russell-Artificial-Intelligence-A-Modern-Approach-4th-Edition/PGM1263338.html),
+Based on the ideas of the book [Artificial Intelligence A Modern Approach](https://www.pearson.com/us/higher-education/program/Russell-Artificial-Intelligence-A-Modern-Approach-4th-Edition/PGM1263338.html),
 Is a combination of  **BacktrackSearching** and **Constraint Propagation**.
-The pseudocode for the algorithm used can be found. [here](http://aima.cs.berkeley.edu/algorithms.pdf)
-
+The pseudocode for the algorithm used can be found [here](http://aima.cs.berkeley.edu/algorithms.pdf).
+The CSP solver and the relative components are stored in the `csp` package.
 
 ## Random Class
+The random class is the base class that each Random object should extend in order to implement
+constrained programming.
+### Declaration
+Create a class that inherits from the base class `sv.Random`
+```scala
+class Frame extends sv.Random
+```
+The class can also be seeded like
+```scala
+class Frame extends sv.Random(33)
+```
 
+You can add random field by declaring a `var` field as type `RandInt` and assigin it a domain
+with the `rand` macro. A domain is a list of values. For now only integer values are supported.
+```scala
+  var len: RandInt = rand(len, 0 to 10 toList)
+```
 
+You can also add a continuous Random Integer by adding a `var` field to your class and declaring it
+`RandIntC`
+```scala
+  var noRepeat: RandCInt = randc(noRepeat, 0 to 1 toList)
+```
+Finally you can constraint the newly added fields by creating a constraint block 
+```scala
+  val myBlock: ConstraintBlock = constraintBlock (
+    unary ( len => len >= 2),
+    unary (len =>  len <= 5),
+  )
+```
 
+### Usage
+
+To randomize the newly create random object, just call the `randomize` method
+```scala
+val frame = new Frame
+while (frame.randomize) {
+  println(frame)
+  assert(frame.len >= 2)
+  assert(frame.len <= 5)
+}
+```
