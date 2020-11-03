@@ -1,3 +1,7 @@
+```
+[![Actions Status](https://xxx.execute-api.us-west-2.amazonaws.com/production/badge/parzival2/csp)](https://xxx.execute-api.us-west-2.amazonaws.com/production/results/parzival3/csp)
+```
+
 # Chisel CRV
 Chisel CRV is a project that aims to mimic the functionality of SystemVerilog constraint programming and integrates them into [chisel-tester2](https://github.com/ucb-bar/chisel-testers2).
 Chisel CRV combines a Constraint Satisfactory Problem Solver, with some helper classes to create and use random objects inside your tests.
