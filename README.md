@@ -86,3 +86,11 @@ while (frame.randomize) {
   assert(frame.len <= 5)
 }
 ```
+
+
+
+## Todo list
+- [ ] Refactoring the csp package
+- [ ] Add random arrays
+- [ ] Add soft constraint
+
