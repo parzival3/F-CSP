@@ -47,10 +47,10 @@ case class Solution(csp: CSP, assignments: Assignments, seed: Int = 42) extends 
     solution.assignments.getUnassignedVariable(solution.csp.variables)
   }
 
-  override def orderDomainValues(solution: Solution, variable: Variable): LazyList[Int] = {
+  override def orderDomainValues(solution: Solution, variable: Variable): Stream[Int] = {
     require(solution.csp.varDomMap(variable).values.nonEmpty)
     val randg = new scala.util.Random(seed)
-    randg.shuffle(solution.csp.varDomMap(variable).values).to(LazyList)
+    randg.shuffle(solution.csp.varDomMap(variable).values).toStream
   }
 
   override def inference(solution: Solution, unassignedVar: Variable): Option[CSP] = {
@@ -60,30 +60,30 @@ case class Solution(csp: CSP, assignments: Assignments, seed: Int = 42) extends 
 
   override def MAC(csp: CSP, queue: List[(Variable, Variable)] = csp.combinationOfArcs): Option[CSP] = AC_3(csp, queue)
 
-  override def children(solution: Solution): LazyList[Solution with Node] = {
+  override def children(solution: Solution): Stream[Solution with Node] = {
     val newVar = selectUnassignedVar(solution)
     val values = orderDomainValues(solution, newVar).filter(value => solution.isConsistent(newVar -> value))
     values.flatMap { value =>
       val newAssignment = solution.assignments.addValue(newVar, value)
       inference(Solution(solution.csp, newAssignment), newVar) match {
-        case None => LazyList.empty
+        case None => Stream.empty
         case Some(newCSP) => {
-          LazyList(Solution(newCSP, newAssignment))
+          Stream(Solution(newCSP, newAssignment))
         }
       }
     }
   }
 
-  override def backtrackingSearch(csp: CSP): LazyList[Solution with Node] = {
+  override def backtrackingSearch(csp: CSP): Stream[Solution with Node] = {
     val noUnaryCSP = csp.removeUnary()
     Solution(csp, Assignments()).MAC(noUnaryCSP) match {
       case Some(newCSP) => backtrack(Solution((newCSP), Assignments()))
-      case None         => LazyList.empty
+      case None         => Stream.empty
     }
   }
 
-  override def backtrack(solution: Solution = this): LazyList[Solution with Node] = children(solution).flatMap {
-    child => if (child.isComplete) LazyList(child) else child.backtrack()
+  override def backtrack(solution: Solution = this): Stream[Solution with Node] = children(solution).flatMap {
+    child => if (child.isComplete) Stream(child) else child.backtrack()
   }
 }
 
@@ -118,7 +118,7 @@ trait Node {
             p || constraints.forall(c => c.isSatisfied(Map(Xi -> x, Xj -> n)))
           }
         })
-        Option.when(revised != csp.varDomMap(Xi))(revised)
+        if (revised != csp.varDomMap(Xi)) Some(revised) else None
     }
   }
 
@@ -179,7 +179,7 @@ trait Node {
 
   def MAC(csp: CSP, queue: List[(Variable, Variable)]): Option[CSP] = AC_3(csp, queue)
 
-  def children(solution: Solution): LazyList[Solution with Node]
+  def children(solution: Solution): Stream[Solution with Node]
 
   /**
     * function BACKTRACKING-SEARCH(csp) returns a solution or failure
@@ -187,14 +187,14 @@ trait Node {
     *  @param
     *  @return
     */
-  def backtrackingSearch(csp: CSP): LazyList[Solution with Node]
+  def backtrackingSearch(csp: CSP): Stream[Solution with Node]
 
   /**
     * @param solution
     * function BACKTRACK(csp, assignment) returns a solution or failure
     *  if assignment is complete then return assignment
     */
-  def backtrack(solution: Solution): LazyList[Solution with Node]
+  def backtrack(solution: Solution): Stream[Solution with Node]
 
   /**
     * Select the next variable to try for our graph
@@ -213,7 +213,7 @@ trait Node {
     * @param variable the current unassigned variable
     * @return LazyList of integer values congruent with the current variable domain
     */
-  def orderDomainValues(solution: Solution, variable: Variable): LazyList[Int]
+  def orderDomainValues(solution: Solution, variable: Variable): Stream[Int]
 
   def inference(solution: Solution, unassignedVar: Variable): Option[CSP]
 }

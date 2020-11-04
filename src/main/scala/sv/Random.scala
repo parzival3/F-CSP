@@ -1,6 +1,4 @@
 package sv
-//import constraint.SVMacros.RandInt
-
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -56,7 +54,7 @@ class Random(val seed: Int = 42) {
   }
 
   def addRandCVar(myMap: (String, List[Int])): Unit = {
-    val iter = LazyList.continually(myMap._2).flatten.iterator
+    val iter = Stream.continually(myMap._2).flatten.iterator
     randCVarsM = randCVarsM += Variable(myMap._1) -> iter
   }
 
