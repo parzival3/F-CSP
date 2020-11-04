@@ -46,14 +46,14 @@ class TestMacros extends AnyFlatSpec {
     }
 
     val myClass = new ClassWithRandC
+
+    println(myClass.debug())
     assert(myClass.randCVarsM.size == 2)
     assert(myClass.randCVarsM.contains(Variable("randCvar")))
     assert(myClass.randCvar == 0)
     myClass.randomize
-    println(myClass.randCvar)
-    println(myClass.randvar)
+    println(myClass.debug())
     myClass.randomize
-    println(myClass.randCvar)
-    println(myClass.randvar)
+    println(myClass.debug())
   }
 }

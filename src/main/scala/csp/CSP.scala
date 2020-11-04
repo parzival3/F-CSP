@@ -1,11 +1,7 @@
 package csp
 
 case class Domain(values: List[Int])
-case class Variable(name: String) {
-  def inside(range: Range*): Unary = {
-    Unary(this, (a) =>  range.flatMap(_.toList).contains(a))
-  }
-}
+case class Variable(name: String)
 
 /**
   * Class representing the current Constraint Satisfaction Problem

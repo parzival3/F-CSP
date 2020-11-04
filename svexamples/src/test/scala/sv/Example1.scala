@@ -25,13 +25,12 @@ class Example1 extends AnyFlatSpec {
       binary ((len, payload) => len == payload)
     )
 
-    override def toString = s"pType = ${pktType(pkType)}, Len = $len, noRepeat = $noRepeat, payload = $payload"
   }
 
   it should "be able to randomize a Frame" in {
     val frame = new Frame
     while (frame.randomize) {
-      println(frame)
+      println(frame.debug())
       assert(frame.len >= 2)
       assert(frame.len <= 5)
       assert(frame.len == frame.payload)

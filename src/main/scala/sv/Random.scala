@@ -1,5 +1,8 @@
 package sv
 
+
+import sv.Random.{RandCInt, RandInt}
+
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.reflect.macros.blackbox
@@ -30,7 +33,7 @@ class Random(val seed: Int = 42) {
   def unary(param: (Int) => Boolean): Constraint = macro sv.RandomMacros.createUnary
   def binary(param: (Int, Int) => Boolean): Constraint = macro sv.RandomMacros.createBinary
   def randomize: Boolean = macro sv.RandomMacros.randomMacroImpl
-  def debug: String = macro sv.RandomMacros.debugImpl
+  def debug(): String = macro sv.RandomMacros.debugImpl
 
   /**
    * Constraint block class. This class encapsulate a list of constraints.
@@ -278,33 +281,28 @@ object RandomMacros extends Random {
 
   /**
     * Debug the current class by printing all the attributes
-    * TODO: complete the function, the best way to achieve this result is by reflection [https://docs.scala-lang.org/overviews/reflection/overview.html]
     * We probably need to refactor [[getAssignedVars()]]
     * @param c Context
     * @return
     */
-  def debugImpl(c: blackbox.Context): c.Tree = {
+  def debugImpl(c: blackbox.Context)(): c.Tree = {
     import c.universe._
-    // import scala.reflect.runtime.{universe => ru}
     val self = c.prefix
-//    val currentType = self.actualType.baseType(self.actualType.baseClasses.head)
-//    val method = ru.typeOf[currentType.type].decl(ru.TermName("len")).asTerm
-//    val buffer = mutable.StringBuilder
-    val nsMap = getAssignedVars[c.type](c)(self)
-    nsMap.foreach { x =>
-      val variable = x._1
-      val setter = x._2
+    val currentType = self.actualType.baseType(self.actualType.baseClasses.head)
+    val method = currentType.decls
+    val randomFields = method.filter(x => x.isTerm && (x.asTerm.typeSignature =:= typeOf[RandCInt] ||
+      x.asTerm.typeSignature =:= typeOf[RandInt]) ).map(x => x.asTerm)
+
+    val z = randomFields.map{x =>
       q"""
-         val myVar = csp.Variable($variable)
-         if ($self.randVarsM.contains(myVar) || $self.randCVarsM.contains(myVar)) {
-           val assignments = $self.cAssignments.get
-           $self.$setter(assignments(myVar))
-         }
-      $self.randVarsM.keys.map(x => x.name + " " ).mkString(", ")
-     """
+        buffer ++= ${x.name.decodedName.toString} + "= " + $self.${x.getter} + "; "
+       """
     }
+
     q"""
-       "Not implemented"
+        val buffer = new StringBuilder()
+        ..$z
+        buffer.toString
      """
   }
 }

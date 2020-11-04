@@ -1,4 +1,4 @@
-name := "svCspTests"
+name := "chisel-crv-tests"
 
 lazy val csp: Project = (project in file("../")).settings(
   libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value,
