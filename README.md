@@ -1,5 +1,5 @@
 
-[![Github actions](https://github.com/parzival3/csp/workflows/Scala%20CI/badge.svg)](https://parzival3.github.io/csp/)
+[![Github actions](https://github.com/parzival3/csp/workflows/Scala%20CI/badge.svg)](https://parzival3.github.io/csp/) [![codecov](https://codecov.io/gh/parzival3/csp/branch/main/graph/badge.svg?token=IUUDSY98P9)](https://codecov.io/gh/parzival3/csp)
 
 
 # Chisel CRV
