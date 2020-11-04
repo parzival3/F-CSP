@@ -85,10 +85,18 @@ To randomize the newly create random object, just call the `randomize` method
 ```scala
 val frame = new Frame
 while (frame.randomize) {
-  println(frame)
+  println(frame.debug())
   assert(frame.len >= 2)
   assert(frame.len <= 5)
 }
+```
+output
+```sbtshell
+pkType = 1; len = 5; noRepeat = 0; payload = 5;
+pkType = 0; len = 5; noRepeat = 1; payload = 5;
+pkType = 11; len = 5; noRepeat = 0; payload = 5;
+pkType = 1; len = 3; noRepeat = 1; payload = 3;
+[...]
 ```
 
 
