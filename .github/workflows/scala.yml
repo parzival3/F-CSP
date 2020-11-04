@@ -29,7 +29,8 @@ jobs:
     - name: Create Coverage Report
       run: sbt coverageReport
       
-    - name: Coveralls
-      uses: coverallsapp/github-action@master
-      with:
-        github-token: ${{ secrets.github_token }}
+    - name: CodeCov
+      env: 
+        CODECOV_TOKEN=${{ secrets.CODECOV_SECRET }}
+      run: bash <(curl -s https://codecov.io/bash)
+   
