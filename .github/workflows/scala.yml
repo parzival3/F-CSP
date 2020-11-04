@@ -30,7 +30,5 @@ jobs:
       run: sbt coverageReport
       
     - name: CodeCov
-      env: 
-        CODECOV_TOKEN=${{ secrets.CODECOV_SECRET }}
-      run: bash <(curl -s https://codecov.io/bash)
+      run: bash <(curl -s https://codecov.io/bash) -t ${{ secrets.CODECOV_SECRET }}
    
