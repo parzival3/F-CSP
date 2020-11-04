@@ -32,4 +32,4 @@ jobs:
     - name: Coveralls
       uses: coverallsapp/github-action@master
       with:
-        github-token: ${{ secrets.ForCobertura }}
+        github-token: ${{ secrets.github_token }}
