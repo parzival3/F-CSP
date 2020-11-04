@@ -36,8 +36,6 @@ class Frame extends sv.Random(33) {
     unary (len =>  len <= 5),
     binary ((len, payload) => len == payload)
   )
-
-  override def toString = s"pType = ${pktType(pkType)}, Len = $len, noRepeat = $noRepeat, payload = $payload"
 }
 ```
 
