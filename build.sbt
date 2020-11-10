@@ -16,3 +16,5 @@ lazy val svexamples: Project = (project in file("svexamples")).aggregate(root).d
 lazy val root = (project in file(".")).settings(
   libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value,
 )
+
+coverageAggregate := true

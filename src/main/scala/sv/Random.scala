@@ -250,11 +250,11 @@ object RandomMacros extends Random {
     import c.universe._
     val self = c.prefix
     val nsMap = getAssignedVars[c.type](c)(self)
-    /**
-      * For each of the terms/variables in the current class, check if the current variable is defined in one of the
-      * maps and assign the new value
-      * This is necessary because I couldn't find an easy way to lift [[nsMap]] inside a quasiquote.
-      */
+    /*
+     * For each of the terms/variables in the current class, check if the current variable is defined in one of the
+     * maps and assign the new value
+     * This is necessary because I couldn't find an easy way to lift [[nsMap]] inside a quasiquote.
+     */
     val operations = nsMap.map { x =>
        val variable = x._1
        val setter = x._2
@@ -268,10 +268,10 @@ object RandomMacros extends Random {
           }
        """
     }
-    /**
-      * First call randomize implementation in order to populate the assignments and then assign the new value
-      * to each variable
-       */
+    /*
+     * First call randomize implementation in order to populate the assignments and then assign the new value
+     * to each variable
+     */
     q"""
        $self.randomizeImp()
        ..$operations
@@ -281,7 +281,7 @@ object RandomMacros extends Random {
 
   /**
     * Debug the current class by printing all the attributes
-    * We probably need to refactor [[getAssignedVars()]]
+    * We probably need to refactor csp.Constraint.getAssignedVar()
     * @param c Context
     * @return
     */

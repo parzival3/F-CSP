@@ -47,7 +47,7 @@ class CSP(val variables: List[Variable], val varDomMap: Map[Variable, Domain], v
   }
 
   /**
-    * This function used in the [[revise]] function returns a list of topple (Xk, Xi) where Xk != Xj
+    * This function used in the csp.revise function returns a list of topple (Xk, Xi) where Xk != Xj
     * We need to find all the neighbor of Xi because the changes in the domain Di might enable further reduction in the
     * domain of Dk that's why the list of tuple are (Xk, Xi) and not (Xi, Xk)
     * @param Xi variable with the new restricted domain

@@ -96,8 +96,11 @@ pkType = 11; len = 5; noRepeat = 0; payload = 5;
 pkType = 1; len = 3; noRepeat = 1; payload = 3;
 [...]
 ```
+## Online Resources
 
-
+- [Constraint Solvingwithout Surprises in Object-ConstraintProgramming Languages](http://www.vpri.org/pdf/tr2015002_oopsla15_babelsberg.pdf)
+- [Exact Cover](https://garethrees.org/2015/11/17/exact-cover/) Series of 3 articles about constraint programming
+- [CLP(FD) Prolog library about constraints](http://www.pathwayslms.com/swipltuts/clpfd/clpfd.html) 
 
 ## Todo list
 - [ ] Refactoring the csp package

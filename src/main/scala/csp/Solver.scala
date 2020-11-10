@@ -184,7 +184,7 @@ trait Node {
   /**
     * function BACKTRACKING-SEARCH(csp) returns a solution or failure
     *  return BACKTRACK(csp, { })
-    *  @param
+    *  @param csp
     *  @return
     */
   def backtrackingSearch(csp: CSP): Stream[Solution with Node]
