@@ -14,11 +14,12 @@ import org.scalatest.flatspec.AnyFlatSpec
  */
 class MACTest extends AnyFlatSpec {
   case class Assignment()
+  implicit def intToBigIntList(iList: List[Int]): List[BigInt] = iList.map(BigInt(_))
 
   private val simpleProblem2V = new {
     val var1: Variable = Variable("a")
     val var2: Variable = Variable("b")
-    val c1:   Binary = Binary(var1, var2, (a: Int, b: Int) => a > b)
+    val c1:   Binary = Binary(var1, var2, (a: BigInt, b: BigInt) => a > b)
     val directGraph = List(c1)
     val listOfDomains = Map(
       Variable("a") -> Domain((0 to 10).toList),

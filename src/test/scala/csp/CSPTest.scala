@@ -4,6 +4,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 
 class CSPTest extends AnyFlatSpec {
   behavior.of("CSP")
+  implicit def intToBigIntList(iList: List[Int]): List[BigInt] = iList.map(BigInt(_))
 
   private val generalFixture = new {
     val varA: Variable = Variable("a")
@@ -12,11 +13,11 @@ class CSPTest extends AnyFlatSpec {
     val varD: Variable = Variable("d")
 
     // TODO: pay attention for now how to assign constraint
-    val c1: Binary = Binary(varA, varB, (a: Int, b: Int) => a + 1 <= b)
-    val c2: Binary = Binary(varA, varB, (a: Int, b: Int) => a * a == b)
-    val c3: Binary = Binary(varB, varC, (b: Int, c: Int) => b * b == 2 * c)
-    val c4: Binary = Binary(varC, varB, (b: Int, c: Int) => b * b == 2 * c)
-    val c5: Binary = Binary(varB, varD, (b: Int, c: Int) => b * b == 2 * c)
+    val c1: Binary = Binary(varA, varB, (a: BigInt, b: BigInt) => a + 1 <= b)
+    val c2: Binary = Binary(varA, varB, (a: BigInt, b: BigInt) => a * a == b)
+    val c3: Binary = Binary(varB, varC, (b: BigInt, c: BigInt) => b * b == 2 * c)
+    val c4: Binary = Binary(varC, varB, (b: BigInt, c: BigInt) => b * b == 2 * c)
+    val c5: Binary = Binary(varB, varD, (b: BigInt, c: BigInt) => b * b == 2 * c)
 
     val listOf2Domains = Map(
       varA -> Domain((0 to 4).toList),

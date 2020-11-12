@@ -1,6 +1,6 @@
 package csp
 
-case class Domain(values: List[Int])
+case class Domain(values: List[BigInt])
 case class Variable(name: String)
 
 /**
@@ -70,7 +70,7 @@ class CSP(val variables: List[Variable], val varDomMap: Map[Variable, Domain], v
   /**
     * Helper method to retrieve all the possible neighbors for all the variables in the problem
     * The name combination of arcs instead of combination of edges is to underline that this function is only used
-    * int the AC_3 and MAC method as described in the book
+    * BigInt the AC_3 and MAC method as described in the book
     * @return List[(Variable, Variable)] a list of all the possible neighbors for each values.
     */
   val combinationOfArcs: List[(Variable, Variable)] = {

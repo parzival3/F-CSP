@@ -4,13 +4,14 @@ import org.scalatest.flatspec.AnyFlatSpec
 
 class TestSolver extends AnyFlatSpec {
   behavior.of("Solver")
+  implicit def intToBigIntList(iList: List[Int]): List[BigInt] = iList.map(BigInt(_))
 
   private def simpleProblem2V = new {
     val var1: Variable = Variable("a")
     val var2: Variable = Variable("b")
     val var3: Variable = Variable("c")
     val var4: Variable = Variable("d")
-    val c1:   Binary = Binary(var1, var2, (a: Int, b: Int) => a > b)
+    val c1:   Binary = Binary(var1, var2, (a: BigInt, b: BigInt) => a > b)
     val c2:   Unary = Unary(var1, (a) => a > 3)
     val directGraph = List(c1, c2)
     val listOfDomains = Map(

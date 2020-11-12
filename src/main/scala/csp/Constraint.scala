@@ -11,7 +11,7 @@ trait Constraint {
 
   def relatesTo(variables: List[Variable]): Boolean
 
-  def isSatisfied(mapVariableValue: Map[Variable, Int]): Boolean
+  def isSatisfied(mapVariableValue: Map[Variable, BigInt]): Boolean
 
   def relatesToVar(variable: Variable): Boolean
 
@@ -22,7 +22,7 @@ trait Constraint {
   def isUnary: Boolean
 }
 
-case class Binary(var1: Variable, var2: Variable, fun: (Int, Int) => Boolean) extends Constraint {
+case class Binary(var1: Variable, var2: Variable, fun: (BigInt, BigInt) => Boolean) extends Constraint {
 
   override def isUnary = false
 
@@ -40,7 +40,7 @@ case class Binary(var1: Variable, var2: Variable, fun: (Int, Int) => Boolean) ex
     variables.contains(var1) && variables.contains(var2)
   }
 
-  override def isSatisfied(mapVariableValue: Map[Variable, Int]): Boolean = {
+  override def isSatisfied(mapVariableValue: Map[Variable, BigInt]): Boolean = {
     fun(mapVariableValue(var1), mapVariableValue(var2))
   }
   override def relatesToVar(variable: Variable): Boolean = {
@@ -54,7 +54,7 @@ case class Binary(var1: Variable, var2: Variable, fun: (Int, Int) => Boolean) ex
   override def neighbor: List[Variable] = List(var1, var2)
 }
 
-case class Unary(var1: Variable, fun: (Int) => Boolean) extends Constraint {
+case class Unary(var1: Variable, fun: (BigInt) => Boolean) extends Constraint {
 
   override def isUnary = true
 
@@ -66,7 +66,7 @@ case class Unary(var1: Variable, fun: (Int) => Boolean) extends Constraint {
     false
   }
 
-  override def isSatisfied(mapVariableValue: Map[Variable, Int]): Boolean = {
+  override def isSatisfied(mapVariableValue: Map[Variable, BigInt]): Boolean = {
     fun(mapVariableValue(var1))
   }
 

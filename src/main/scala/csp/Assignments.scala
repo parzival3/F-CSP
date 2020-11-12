@@ -5,9 +5,9 @@ package csp
   * An assignment can be complete or partial respect to a list of variables.
   * @param mapVarValue Map of Variable -> Value
   */
-case class Assignments(mapVarValue: Map[Variable, Int] = Map[Variable, Int]()) {
+case class Assignments(mapVarValue: Map[Variable, BigInt] = Map[Variable, BigInt]()) {
 
-  def apply(variable: Variable): Int = {
+  def apply(variable: Variable): BigInt = {
     mapVarValue(variable)
   }
 
@@ -17,7 +17,7 @@ case class Assignments(mapVarValue: Map[Variable, Int] = Map[Variable, Int]()) {
     * @param value
     * @return new Assignments with the new assignment added
     */
-  def addValue(unassignedVar: Variable, value: Int): Assignments = {
+  def addValue(unassignedVar: Variable, value: BigInt): Assignments = {
     Assignments(mapVarValue + (unassignedVar -> value))
   }
 

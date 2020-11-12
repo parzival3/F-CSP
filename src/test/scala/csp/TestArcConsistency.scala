@@ -5,6 +5,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 
 class TestArcConsistency extends AnyFlatSpec {
   behavior.of("Solution")
+  implicit def intToBigIntList(iList: List[Int]): List[BigInt] = iList.map(BigInt(_))
 
   private val varsConstraintFixture = new {
     val varA:         Variable = Variable("a")

@@ -33,8 +33,6 @@ class Example2 extends AnyFlatSpec {
       unary (len => len <= 4),
       unary (pType => pType == MULTICAST.id)
     )
-
-    override def toString = s"pType = ${pktType(pType)}, Len = $len, noRepeat = $noRepeat, payload = $payload"
   }
 
   import pktType._
@@ -43,7 +41,7 @@ class Example2 extends AnyFlatSpec {
     println("Disable MULTICAST")
     frame.multicast.disable()
     while (frame.randomize) {
-      println(frame)
+      println(frame.debug())
       assert(frame.len <= 2)
       assert(frame.len == frame.payload)
       assert(frame.pType == UNICAST.id)
@@ -53,7 +51,7 @@ class Example2 extends AnyFlatSpec {
     frame.unicast.disable()
     frame.multicast.enable()
     while (frame.randomize) {
-      println(frame)
+      println(frame.debug())
       assert(frame.len <= 4 && frame.len >= 3)
       assert(frame.len == frame.payload)
       assert(frame.pType == MULTICAST.id)

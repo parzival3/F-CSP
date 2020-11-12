@@ -34,7 +34,7 @@ case class Solution(csp: CSP, assignments: Assignments, seed: Int = 42) extends 
     * @param newAssignment tuple of (Variable,Value)
     * @return Boolean
     */
-  def isConsistent(newAssignment: (Variable, Int)): Boolean = {
+  def isConsistent(newAssignment: (Variable, BigInt)): Boolean = {
     require(!assignments.assigned(newAssignment._1))
     isComplete || csp.constraints.filter(c => c.relatesToVar(newAssignment._1)).forall { c =>
       c.isConsistent(c.neighbor, Assignments(assignments.mapVarValue ++ Map(newAssignment._1 -> newAssignment._2)))
@@ -47,7 +47,7 @@ case class Solution(csp: CSP, assignments: Assignments, seed: Int = 42) extends 
     solution.assignments.getUnassignedVariable(solution.csp.variables)
   }
 
-  override def orderDomainValues(solution: Solution, variable: Variable): Stream[Int] = {
+  override def orderDomainValues(solution: Solution, variable: Variable): Stream[BigInt] = {
     require(solution.csp.varDomMap(variable).values.nonEmpty)
     val randg = new scala.util.Random(seed)
     randg.shuffle(solution.csp.varDomMap(variable).values).toStream
@@ -213,7 +213,7 @@ trait Node {
     * @param variable the current unassigned variable
     * @return LazyList of integer values congruent with the current variable domain
     */
-  def orderDomainValues(solution: Solution, variable: Variable): Stream[Int]
+  def orderDomainValues(solution: Solution, variable: Variable): Stream[BigInt]
 
   def inference(solution: Solution, unassignedVar: Variable): Option[CSP]
 }

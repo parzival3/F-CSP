@@ -8,14 +8,15 @@ import scala.collection.mutable.ListBuffer
 import scala.reflect.macros.blackbox
 
 object Random{
-  type RandInt = Int
-  type RandCInt = Int
-  type RandArray = Array[Int]
+  type RandInt = BigInt
+  type RandCInt = BigInt
+  type RandArray = Array[BigInt]
 }
 
 class Random(val seed: Int = 42) {
 
   import csp.{Assignments, CSP, Constraint, Domain, Node, Solution, Variable}
+  implicit def intToBigIntList(iList: List[Int]): List[BigInt] = iList.map(BigInt(_))
   /**
     * For convenience during development these attributes are public
     * TODO: change back to private
@@ -23,15 +24,15 @@ class Random(val seed: Int = 42) {
   var cspO: Option[CSP] = None
   var randVarsM: mutable.HashMap[Variable, Domain] = mutable.HashMap[Variable, Domain]()
   val mapOfConstraint: ListBuffer[Constraint] = ListBuffer[Constraint]()
-  var randCVarsM: mutable.HashMap[Variable, Iterator[Int]] = mutable.HashMap[Variable, Iterator[Int]]()
+  var randCVarsM: mutable.HashMap[Variable, Iterator[BigInt]] = mutable.HashMap[Variable, Iterator[BigInt]]()
   var iterator: Option[Iterator[Solution with Node]] = None
   var cAssignments: Option[Assignments] = Some(Assignments())
 
-  def rand(param: Array[Int]): Array[Int] = macro sv.RandomMacros.randArray
-  def rand(param: Int, dom: List[Int]): Int = macro sv.RandomMacros.randVarDec
-  def randc(param: Int, dom: List[Int]): Int = macro sv.RandomMacros.randCVarDec
-  def unary(param: (Int) => Boolean): Constraint = macro sv.RandomMacros.createUnary
-  def binary(param: (Int, Int) => Boolean): Constraint = macro sv.RandomMacros.createBinary
+  def rand(param: Array[BigInt]): Array[BigInt] = macro sv.RandomMacros.randArray
+  def rand(param: BigInt, dom: List[BigInt]): BigInt = macro sv.RandomMacros.randVarDec
+  def randc(param: BigInt, dom: List[BigInt]): BigInt = macro sv.RandomMacros.randCVarDec
+  def unary(param: (BigInt) => Boolean): Constraint = macro sv.RandomMacros.createUnary
+  def binary(param: (BigInt, BigInt) => Boolean): Constraint = macro sv.RandomMacros.createBinary
   def randomize: Boolean = macro sv.RandomMacros.randomMacroImpl
   def debug(): String = macro sv.RandomMacros.debugImpl
 
@@ -52,11 +53,11 @@ class Random(val seed: Int = 42) {
     }
   }
 
-  def addRandVar(myMap: (String, List[Int])): Unit = {
+  def addRandVar(myMap: (String, List[BigInt])): Unit = {
     randVarsM = randVarsM += (Variable(myMap._1) -> Domain(myMap._2))
   }
 
-  def addRandCVar(myMap: (String, List[Int])): Unit = {
+  def addRandCVar(myMap: (String, List[BigInt])): Unit = {
     val iter = Stream.continually(myMap._2).flatten.iterator
     randCVarsM = randCVarsM += Variable(myMap._1) -> iter
   }
@@ -108,7 +109,7 @@ object RandomMacros extends Random {
     * @param param lambda function to apply on the specific variables expressed inside the function
     * @return
     */
-  def createBinary(c: blackbox.Context)(param: c.Expr[(Int, Int) => Boolean]): c.Tree = {
+  def createBinary(c: blackbox.Context)(param: c.Expr[(BigInt, BigInt) => Boolean]): c.Tree = {
     import c.universe._
     val Function(args, _) = param.tree
     val ValDef(_, xName, _, _) = args.head
@@ -127,7 +128,7 @@ object RandomMacros extends Random {
     * @param param lambda function to apply on the specific variables expressed inside the function
     * @return
     */
-  def createUnary(c: blackbox.Context)(param: c.Expr[Int => Boolean]): c.Tree = {
+  def createUnary(c: blackbox.Context)(param: c.Expr[BigInt => Boolean]): c.Tree = {
     import c.universe._
     val Function(args, _) = param.tree
     val ValDef(_, name, _, _) = args.head
