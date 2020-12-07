@@ -6,15 +6,19 @@ import scala.language.postfixOps
 class Example2 extends AnyFlatSpec {
   behavior of "SystemVerilog"
 
-  object pktType extends SVEnumeration {
+  object pktType extends Enumeration {
     val UNICAST: Value = Value(11)
     val MULTICAST: Value = Value(0)
     val BROADCAST: Value = Value(1)
+
+    val domainValues = {
+      values.map(x => x.id).toList
+    }
   }
 
   class Frame extends Random {
     import pktType._
-    var pType: RandInt = rand(pType, pktType.domainValues())
+    var pType: RandInt = rand(pType, pktType.domainValues)
     var len: RandInt = rand(len, 0 to 10 toList)
     var noRepeat: RandCInt = randc( noRepeat, 0 to 1 toList)
     var payload: RandInt = rand(payload, 0 to 7 toList)
